@@ -58,7 +58,6 @@ class Mapper():
         point = self._extend_point(point)
         
         yield n, point.tolist()
-        #yield n, str(point.tostring())
         
         
 class Reducer():
@@ -85,10 +84,8 @@ class Reducer():
             s = [s[i] + v[i] for i in range(0,len(v))]
         m = self._computer_centroid(s)
         
-        yield key, m
+        yield m[0:-1]
         
         
 if __name__ == "__main__":
-    dumbo.run(Mapper,Reducer,Reducer)
-    
-        
+    dumbo.run(Mapper,Reducer)      
