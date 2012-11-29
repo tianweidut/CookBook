@@ -15,7 +15,6 @@ class Mapper():
         self.clusters = self._load_clusters()
     
     def _load_clusters(self):
-        #return np.loadtxt("clusters.csv")
         return np.loadtxt(self.params["filename"])
 
     def _nearest_cluster_id(self,clusters, point):
@@ -86,7 +85,10 @@ class Reducer():
         m = self._computer_centroid(s)
         
         #yield (m[0],m[1],m[2]) , "\n"
-        yield m[0:-1]
+        if self.params["ishadoop"] == "yes":
+            yield m[0:-1], '\t'
+        else:
+            yield m[0:-1]
         
         
 if __name__ == "__main__":

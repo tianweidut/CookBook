@@ -104,11 +104,7 @@ class KmeansControl(object):
         
         ###################
         #Calculate Process
-        for i in range(0,self.maxs):        
-            distResult = self.calculateResult(previous_result=self.patialSource,current_result=self.patialResult) 
-            if distResult or i > self.maxs:
-                break
-            
+        for i in range(0,self.maxs):          
             self.resultName = self.clusterData + "_" + str(i)
             self.patialResult = os.path.join(self.resultDir, self.resultName)
 
@@ -117,7 +113,15 @@ class KmeansControl(object):
                     clusterfile=self.patialSource, 
                     outputfile=self.patialResult
                     )
-
+            
+            #condition 
+            distResult = self.calculateResult(
+                            previous_result=self.patialSource,
+                            current_result=resultName
+                            ) 
+            if distResult or i > self.maxs:
+                break
+            
             self.patialSource = resultName
 
         ###############
@@ -146,9 +150,11 @@ class KmeansControl(object):
         if self.ishadoop:
             args += " -file " + clusterfile
             args += ' -param filename="%s" '%(os.path.basename(clusterfile))
+            args += ' ishadoop="yes" ' 
             args += " -overwrite yes "
         else:
             args += " -param filename=" + clusterfile
+            args += ' ishadoop ="no" ' 
 
         print args 
         
