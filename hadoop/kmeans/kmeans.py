@@ -15,8 +15,9 @@ class Mapper():
         self.clusters = self._load_clusters()
     
     def _load_clusters(self):
-        return np.loadtxt(self.params["clusters_file"])
-    
+        #return np.loadtxt("clusters.csv")
+        return np.loadtxt(self.params["filename"])
+
     def _nearest_cluster_id(self,clusters, point):
         """
         Find the nearest neighbor
@@ -84,6 +85,7 @@ class Reducer():
             s = [s[i] + v[i] for i in range(0,len(v))]
         m = self._computer_centroid(s)
         
+        #yield (m[0],m[1],m[2]) , "\n"
         yield m[0:-1]
         
         

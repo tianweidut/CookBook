@@ -16,7 +16,6 @@ MAXIterations = 100
 DistanceResult = 1e-3
 HADOOP_PATH = os.environ["HADOOP_HOME"]
 
-
 class KmeansControl(object):
     """
     Kmeans Control Class Logical
@@ -29,21 +28,25 @@ class KmeansControl(object):
     prevNorm = None
     currNorm = None
 
-    def __init__(self, ishadoop=False, filepath=None):
+    def __init__(self,ishadoop=False, dataPath=None, localPath=None):
         self.maxs = MAXIterations
         self.rightResult = DistanceResult
         self.ishadoop = ishadoop
         
+        self.localPath = localPath
+
         if self.ishadoop:
-            self.dataDir = filepath
+            self.dataDir = dataPath
+            self.patialSource = os.path.join(self.localPath,self.clusterData)
         else:
-            self.dataDir =  os.path.join(self.exDir,"data") 
-        
+            self.dataDir = os.path.join(dataPath,"data") 
+            self.patialSource = os.path.join(self.dataDir,self.clusterData)
+
         self.resultDir = os.path.join(self.dataDir,'result')
         self.sourceData = os.path.join(self.dataDir,"data.csv")
 
-        self.patialSource = os.path.join(self.dataDir,self.clusterData)
         self.patialResult = None
+        self.resultName = None
 
     def calculateResult(self,previous_result = None, current_result = None):
         """
@@ -106,18 +109,16 @@ class KmeansControl(object):
             if distResult or i > self.maxs:
                 break
             
-            self.patialResult = os.path.join(self.resultDir ,self.clusterData+"_"+str(i))
+            self.resultName = self.clusterData + "_" + str(i)
+            self.patialResult = os.path.join(self.resultDir, self.resultName)
 
-            result = self.jobRun(
-                    inputfile = self.sourceData,
-                    clusterfile= self.patialSource, 
+            resultName = self.jobRun(
+                    inputfile=self.sourceData,
+                    clusterfile=self.patialSource, 
                     outputfile=self.patialResult
                     )
 
-            if result != 0:
-                raise ValueError("%s kmeans iteration ERROR!!"%(i))
-
-            self.patialSource = self.patialResult
+            self.patialSource = resultName
 
         ###############
         #show the graph
@@ -141,21 +142,55 @@ class KmeansControl(object):
         
         args += " -input " + inputfile
         args += " -output " + outputfile 
-        args += " -param clusters_file=" + clusterfile
+        
+        if self.ishadoop:
+            args += " -file " + clusterfile
+            args += ' -param filename="%s" '%(os.path.basename(clusterfile))
+            args += " -overwrite yes "
+        else:
+            args += " -param filename=" + clusterfile
 
         print args 
+        
+        ret = os.system(args)
+        if ret != 0 :
+            raise ValueError("Calculate Error!")
+        else:
+            print "----Finish the calculate process ----"
+        
+        if self.ishadoop:
+            print "------Now we dump the output ------"
+            
+            resultName =  os.path.join(self.localPath,os.path.basename(outputfile))
 
-        return os.system(args)
+            args = ""
+            args += " dumbo cat "
+            args += outputfile
+            args += " -hadoop " + HADOOP_PATH
+            args += " > " + resultName
+
+            print args 
+
+            ret = os.system(args)
+
+            if ret != 0:
+                raise ValueError("Dump process failed!")
+            else:
+                print "-----finish the dump process-----"
+        else:
+            resultName = outputfile
+
+        return resultName 
 
 def main(argv):
     """
     main thread
     """
-    if len(argv) == 4 and argv[2] == "hadoop":
-        k = KmeansControl(ishadoop=True,filename = argv[3])
+    if len(argv) == 4 and argv[1] == "hadoop":
+        k = KmeansControl(ishadoop=True,dataPath = argv[2],localPath = argv[3])
         k.run()
     else:
-        k = KmeansControl()
+        k = KmeansControl(dataPath=argv[1])
         k.run()
 
 if __name__ == "__main__":
