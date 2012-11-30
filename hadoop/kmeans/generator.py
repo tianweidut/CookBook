@@ -7,6 +7,7 @@ Created on 2012-11-27
 import os
 import sys
 import random
+import datetime
 
 FILEBLOCK = 100*100*10
 
@@ -50,7 +51,7 @@ class Generator(object):
     def run(self):
         """
         """
-        self.sample_file = open(os.path.join(data_path,sample_name+str(self.kclusters)),"w")
+        self.sample_file = open(os.path.join(data_path,sample_name+str(self.filesize)),"w")
         self.cluster_file = open(os.path.join(data_path,clusters_name+str(self.kclusters)),"w")
     
         #choice random number in [0,sum] 
@@ -58,7 +59,9 @@ class Generator(object):
         print randomSeq
     
         step = MAX / self.base
-    
+        
+        startTime = datetime.datetime.now();
+
         cnt = 0
         for item in xrange(0,self.filesize * FILEBLOCK):
             for i in range(1,self.base+1):
@@ -77,7 +80,9 @@ class Generator(object):
 
         self.sample_file.close()
         self.cluster_file.close()
-
+        
+        endTime = datetime.datetime.now()
+        print "Sum time is :%d"%(endTime-startTime).seconds
 
 if __name__ == "__main__":
     from optparse import OptionParser
@@ -93,8 +98,8 @@ if __name__ == "__main__":
             default = 1,help = "filesize")
 
     (options, args) = parse.parse_args() 
-    t = Generator(kclusters=options.kclusters, 
-                  base=options.base,
-                  filesize=options.filesize, 
-                  dim=options.dim) 
+    t = Generator(kclusters=int(options.kclusters), 
+                  base=int(options.base),
+                  filesize=int(options.filesize), 
+                  dim=int(options.dim)) 
     t.run()
