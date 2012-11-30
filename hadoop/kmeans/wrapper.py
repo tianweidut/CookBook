@@ -196,9 +196,12 @@ def main(argv):
     """
     from optparse import OptionParser
     parse  = OptionParser()
+    clusterData = "clusters.csv"
     
-    parse.add_option("-i", "--ishadoop", action="store_false", dest="ishadoop", 
-                        help="whether it is running on hadoop platform")
+    parse.add_option("-o", "--openHadoop", action="store_true", dest="ishadoop", 
+                     help="whether it is running on hadoop platform")
+    parse.add_option("-q", "--closeHadoop", action="store_false", dest="ishadoop", 
+                     help="whether it is running on hadoop platform")
     parse.add_option("-d","--dataPath",action = "store",dest = "dataPath",
             help = "source sample data path")
     parse.add_option("-l","--localPath",action = "store",dest = "localPath",default = None, 
@@ -210,21 +213,25 @@ def main(argv):
 
     (options, args) = parse.parse_args() 
  
-    if len(args) < 2:
+    if len(sys.argv) < 2:
         print "Usages:"
-        print "-i --ishadoop whether it is running on hadoop platform"
+        print "-o --openHadoop Open Hadoop Platform"
+        print "-q --closeHadoop use dumbo local environment"
         print "-d --dataPath source sample data path"
         print "-l --localPath clusters file path which is in the local path and carrying with python program "
         print "-s --simpleName sample Name "
         print "-c --clusterName cluster Name"
-        print "please enjoy! *_* "
+        print "please enjoy! From tianwei *_* "
         return 
-
+    
+    print options.ishadoop
+    print bool(options.ishadoop)
     k = KmeansControl(ishadoop=options.ishadoop,
                         dataPath = options.dataPath,
                         localPath = options.localPath,
                         clusterName = options.clusterName,
                         sampleName = options.sampleName)
+    k.run()
 
 if __name__ == "__main__":
     main(sys.argv)
