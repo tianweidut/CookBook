@@ -8,7 +8,7 @@ import dumbo
 import numpy as np
 import os
 
-SEP = ','   #Parse from file
+SEP = ' '   #Parse from file
 
 class Mapper():
     def __init__(self):
@@ -53,7 +53,7 @@ class Mapper():
             key: nearest cluster index (int)
             value: patial sum, it 1 now. (numpy array)
         """
-        point = np.fromstring(value,dtype=np.float32,sep=SEP)
+        point = np.fromstring(value,dtype=np.float64,sep=SEP)
         n = self._nearest_cluster_id(self.clusters, point)
         point = self._extend_point(point)
         
@@ -84,12 +84,11 @@ class Reducer():
             s = [s[i] + v[i] for i in range(0,len(v))]
         m = self._computer_centroid(s)
         
-        #yield (m[0],m[1],m[2]) , "\n"
+        
         if self.params["ishadoop"] == "yes":
-            yield m[0:-1], '\t'
+            yield m[0:-1], "\t"
         else:
             yield m[0:-1]
-        
         
 if __name__ == "__main__":
     dumbo.run(Mapper,Reducer)      
