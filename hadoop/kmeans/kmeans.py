@@ -13,6 +13,7 @@ SEP = ' '   #Parse from file
 class Mapper():
     def __init__(self):
         self.clusters = self._load_clusters()
+        self.result = {}
     
     def _load_clusters(self):
         return np.loadtxt(self.params["filename"])
@@ -40,7 +41,32 @@ class Mapper():
         point[-1] = 1
         return point
     
-    def __call__(self,key,value):
+    def __call__(self,data):
+        """
+        Mapper Program: which use in-mapper combiner
+
+        Inputs:
+            key: data , which is the whole artical
+
+        Outputs:
+            key: kinds
+            value: the centroid
+        """
+        #local mapper 
+        for docID,doc in data:
+            for term in doc.split("\n"):
+                point = np.fromstring(term,dtype=np.float64,sep=SEP)
+                n = self._nearest_cluster_id(self.clusters,point)
+                point = self._extend_point(point)
+                
+                #in-mappper combiner
+                self.result[n] = self.result.get(n,0) + point
+        
+        #close yield
+        for n, point in self.result.items():
+            yield n,point
+    
+    def __call__singlemap(self,key,value):
         """
         Real Mapper Program : Take in a point , Find its NN
         
@@ -58,8 +84,7 @@ class Mapper():
         point = self._extend_point(point)
         
         yield n, point.tolist()
-        
-        
+         
 class Reducer():
     def _computer_centroid(self,s): 
         s = [i /s[-1] for i in s]
