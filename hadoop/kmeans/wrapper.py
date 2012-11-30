@@ -23,15 +23,17 @@ class KmeansControl(object):
     exDir = os.path.abspath(os.path.dirname(__file__))
     exProgram = os.path.join(exDir, "kmeans.py")
 
-    clusterData = "clusters.csv"
-
     prevNorm = None
     currNorm = None
 
-    def __init__(self,ishadoop=False, dataPath=None, localPath=None):
+    def __init__(self,ishadoop=False, dataPath=None,
+            localPath=None, clusterName= "clusters.csv", sampleName = "data.csv" ):
         self.maxs = MAXIterations
         self.rightResult = DistanceResult
         self.ishadoop = ishadoop
+        
+        self.clusterData = clusterName
+        self.sampleName = sampleName
         
         self.localPath = localPath
 
@@ -43,7 +45,7 @@ class KmeansControl(object):
             self.patialSource = os.path.join(self.dataDir,self.clusterData)
 
         self.resultDir = os.path.join(self.dataDir,'result')
-        self.sourceData = os.path.join(self.dataDir,"data.csv")
+        self.sourceData = os.path.join(self.dataDir,self.sampleName)
 
         self.patialResult = None
         self.resultName = None
@@ -192,12 +194,37 @@ def main(argv):
     """
     main thread
     """
-    if len(argv) == 4 and argv[1] == "hadoop":
-        k = KmeansControl(ishadoop=True,dataPath = argv[2],localPath = argv[3])
-        k.run()
-    else:
-        k = KmeansControl(dataPath=argv[1])
-        k.run()
+    from optparse import OptionParser
+    parse  = OptionParser()
+    
+    parse.add_option("-i", "--ishadoop", action="store_false", dest="ishadoop", 
+                        help="whether it is running on hadoop platform")
+    parse.add_option("-d","--dataPath",action = "store",dest = "dataPath",
+            help = "source sample data path")
+    parse.add_option("-l","--localPath",action = "store",dest = "localPath",default = None, 
+            help = "clusters file path which is in the local path and carrying with python program")
+    parse.add_option("-s","--simpleName",action = "store",dest = "sampleName",
+            default ="data.csv" ,help = "sample name")
+    parse.add_option("-c","--clusterName",action = "store",dest = "clusterName",
+            default ="clusters.csv" ,help = "cluster name")
+
+    (options, args) = parse.parse_args() 
+ 
+    if len(args) < 2:
+        print "Usages:"
+        print "-i --ishadoop whether it is running on hadoop platform"
+        print "-d --dataPath source sample data path"
+        print "-l --localPath clusters file path which is in the local path and carrying with python program "
+        print "-s --simpleName sample Name "
+        print "-c --clusterName cluster Name"
+        print "please enjoy! *_* "
+        return 
+
+    k = KmeansControl(ishadoop=options.ishadoop,
+                        dataPath = options.dataPath,
+                        localPath = options.localPath,
+                        clusterName = options.clusterName,
+                        sampleName = options.sampleName)
 
 if __name__ == "__main__":
     main(sys.argv)
