@@ -9,7 +9,7 @@ import sys
 import random
 import datetime
 
-FILEBLOCK = 100*100*10
+FILEBLOCK = 100*100
 
 data_path = "/home/hadoop/example/data"
 sample_name = "sample_data" 
@@ -21,7 +21,7 @@ MAX = 100000
 class Generator(object):
     """
     """
-    def __init__(self,kclusters=10, base=5, filesize=1, dim=2):
+    def __init__(self,kclusters=13, base=5, filesize=1, dim=2):
         """
         Args:
             kclusters --> the number of the clusters
@@ -91,7 +91,7 @@ if __name__ == "__main__":
     parse.add_option("-d", "--dim", action="store", dest="dim", 
                         default=2, help="dim of the data")
     parse.add_option("-k","--kclusters",action = "store",dest = "kclusters",
-            default = 10,help = "the number of the clusters")
+            default = 13,help = "the number of the clusters")
     parse.add_option("-b","--base",action = "store",dest = "base", 
             default =5,help = "calculte number")
     parse.add_option("-s","--filesize",action = "store",dest = "filesize",

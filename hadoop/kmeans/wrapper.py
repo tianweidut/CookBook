@@ -12,7 +12,7 @@ import numpy
 from scipy.linalg import norm
 
 """Configure"""
-MAXIterations = 100
+MAXIterations = 1000
 DistanceResult = 1e-3
 HADOOP_PATH = os.environ["HADOOP_HOME"]
 
@@ -22,6 +22,7 @@ class KmeansControl(object):
     """
     exDir = os.path.abspath(os.path.dirname(__file__))
     exProgram = os.path.join(exDir, "kmeans.py")
+    tmpName = "/home/hadoop/example/data/tmp.data" 
 
     prevNorm = None
     currNorm = None
@@ -50,6 +51,8 @@ class KmeansControl(object):
         self.patialResult = None
         self.resultName = None
 
+        self.tmpFile = open(self.tmpName,"w")
+
     def calculateResult(self,previous_result = None, current_result = None):
         """
         """
@@ -68,11 +71,13 @@ class KmeansControl(object):
         self.currNorm = sumV
 
         if self.prevNorm is None:
-            self.preNorm = sumV
+            self.prevNorm = sumV
             ret = False
         else:
             ret = True if abs(self.prevNorm - self.currNorm) < self.rightResult else False
-            self.preNorm = sumV
+            self.tmpFile.write("%f -> %f -> %f\n"% \
+                    (self.prevNorm,self.currNorm,abs(self.prevNorm - self.currNorm)))
+            self.prevNorm = sumV
         
         return ret
  
@@ -95,7 +100,7 @@ class KmeansControl(object):
         """
         clean the resource 
         """
-        pass
+        self.tmpFile.close() 
 
     def run(self):
         """
