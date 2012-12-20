@@ -76,10 +76,12 @@ class Mapper():
                 result = np.concatenate((result, point))
 
         ###SETP2: normalize the matrix 
+        result = self.standardization(result)
 
-        ###SETP3: for every column, calculate X * X(T) 
+        ###SETP3: for every column, calculate X(T) * X 
+        local_matrix = np.transpose(result) * result 
 
-
+        yield 1, local_matrix
 
 class Reducer():
      
@@ -94,7 +96,12 @@ class Reducer():
         Outputs:
             the sorted eigenvalue and eigenvector list 
         """
-        pass
+        s = None
+        for v in values:
+            if s is None : s = np.zeros(np.shape(values))  
+            s = s + values
+
+        yield s
 
 if __name__ == "__main__":
     dumbo.run(Mapper,Reducer)
