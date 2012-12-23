@@ -72,7 +72,7 @@ class Mapper():
             value: covariance
         """
         
-        ###SETP1: calculate the means matrix### 
+        ###SETP1: calculate the means matrix 
         result = None
 
         for docID, doc in data:
@@ -81,13 +81,14 @@ class Mapper():
                 point = np.array([point - self.means])
                 result = np.concatenate((result, point)) if result is not None else point
 
-        ###SETP2: normalize the matrix### 
+        debug(result) 
+        ###SETP2: normalize the matrix 
         #result = self.standardization(result)
 
-        ###SETP3: for every column, calculate X(T) * X### 
-        local_matrix = np.dot(np.transpose(result),result) 
+        ###SETP3: for every column, calculate X(T) * X 
+        local_matrix = np.transpose(result) * result
 
-        yield 1, local_matrix.tolist()
+        yield 1, local_matrix
 
 class Reducer():
      
@@ -103,24 +104,14 @@ class Reducer():
             the sorted eigenvalue and eigenvector list 
         """
         s = None
-        
-        ###SETP4: Combine the array result###
         for v in values:
-            v = np.array(v)
-            if s is None: s = np.zeros(np.shape(v),float)  
-            s = s + v
-
-        ###SETP5:singular value decomposition###
-        [U, S, V] = np.linalg.svd(s)
-        
-        debug(U)
-        debug(S)
-        debug(V)
+            if s is None : s = np.zeros(np.shape(v))  
+            s = s + values
 
         yield s
 
 if __name__ == "__main__":
-    #dumbo.run(Mapper)
-    dumbo.run(Mapper, Reducer)
+    dumbo.run(Mapper)
+    #dumbo.run(Mapper,Reducer)
 
 
