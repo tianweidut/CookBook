@@ -4,10 +4,11 @@ Created on 2012-12-19
 
 @author: tianwei
 '''
-import dumbo
-import numpy as np
 import sys
+from operator import itemgetter
 
+import numpy as np
+import dumbo
 
 __author__ = "tianwei"
 __date__ = "December 19  2012"
@@ -108,21 +109,26 @@ class Reducer():
         """
         s = None
         
-        #SETP4: Combine the array result
+        # SETP4: Combine the array result
         for v in values:
             v = np.array(v)
             if s is None: s = np.zeros(np.shape(v), float)  
             s = s + v
 
-        #SETP5:singular value decomposition
+        # SETP5:singular value decomposition
         [U, S, V] = np.linalg.svd(s)
-       
-        debug(U)
+        debug(U) 
         debug(S)
         debug(V)
+        # STEP6:sort the SVD and output the matrix(descending order)
+        eigendict = {}
+        for i in range(0, len(S)):
+            eigendict[S[i]] = U[:, i]
 
-        yield s
+        sorted_eigendict = sorted(eigendict.iteritems(), key=itemgetter(0), reverse=True)
+
+        for key, item in sorted_eigendict:
+            yield key, item.tolist()
 
 if __name__ == "__main__":
-    #dumbo.run(Mapper)
     dumbo.run(Mapper, Reducer)
