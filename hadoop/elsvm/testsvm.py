@@ -1,134 +1,90 @@
 # -*- coding: UTF-8 -*-
 '''
-Created on 2012-12-19
+Created on 2012-12-24
 
 @author: tianwei
 '''
 import sys
-from operator import itemgetter
+from math import e
 
 import numpy as np
 import dumbo
 
 __author__ = "tianwei"
-__date__ = "December 19  2012"
-__description__ = "pca algorithm for the whole date set "
+__date__ = "December 24  2012"
+__description__ = "mapreduce test for el-svm"
 
 SEP = ','   # Parse from file
-
-
-def debug(content, pos=None):
-    print >> sys.stderr, "+" * 15
-    if pos is not None:
-        print >> sys.stderr, pos
-    print >> sys.stderr, content
-    print >> sys.stderr, "-" * 15
 
 
 class Mapper():
     def __init__(self):
         """
         """
-        self.means = self.load_means()
+        self.load_models()
 
-    def load_means(self):
+    def load_models(self):
         """
-        load means from the file
+        load models from the file
         """
-        f = open(self.params["means_filename"])
+        f = open(self.params["models_filename"])
         content = f.readlines()
-        matrix = [0.0 for i in content]
 
-        for line in content:
-            word = line.split("\t")
-            matrix[int(word[0])] = float(word[1])
+        self.w_suffix_matrix = np.array(content[2])
+        self.r = float(content[3])
+        self.w_matrix = np.array(content[4])
 
         f.close()
 
-        return np.array(matrix)
-
-    def standardization(self, matrix):
+    def varify(self, point):
         """
-        standardization the matrix
+        varify the label
         """
-        (rows, cols) = np.shape(matrix)
-        new_matrix = np.zeros((rows, cols))
-        std_matrix = np.std(matrix, 0)
+        right_label = int(point[-1])
+        point[-1] = 1
+        point = np.dot(point, self.w_suffix_matrix)
+        tmp = map(lambda x: 1 / (1 + pow(e, -x)), point.tolist())
 
-        for value in std_matrix:
-            if value == 0:
-                raise ZeroDivisionError('division by zero, cannot proceed')
+        label = 1 if np.dot(tmp, self.w_matrix) + self.r > 0 else 0
 
-        for row in range(rows):
-            new_matrix[row, 0:cols] = matrix[row, 0:cols] / \
-                    std_matrix[row, 0:cols]
-
-        return new_matrix
+        return True if label == right_label else False
 
     def __call__(self, data):
         """
-        Mapper Progra 
-        
-        Inputs 
-            data, which is the whole split block data
-
-        Outputs:
-            key: untified id
-            value: covariance
+        Mapper Program 
         """
         
-        # SETP1: calculate the means matrix 
-        result = None
+        true_cnt = 0
+        false_cnt = 0
 
         for docID, doc in data:
             for term in doc.split("\n"):
                 point = np.fromstring(term, dtype=np.float64, sep=SEP)
-                point = np.array([point - self.means])
-                result = np.concatenate((result, point)) if result is not None else point
+                if self.varify(point):
+                    true_cnt = true_cnt + 1
+                else:
+                    false_cnt = false_cnt + 1
 
-        # SETP2: normalize the matrix
-        #result = self.standardization(result)
-
-        #SETP3: for every column, calculate X(T) * X
-        local_matrix = np.dot(np.transpose(result), result)
-
-        yield 1, local_matrix.tolist()
+        yield "true_label", true_cnt
+        yield "false_label", false_cnt
 
 
 class Reducer(): 
     def __call__(self, key, values):
         """
-        Reducer Program: generator eigenvalue
+        Reducer Program: statistical for elsvm
         
         Inputs:
-            key: untified id
-            values: covariance 
+            key: true_label or false_label
+            values: cnt for label 
 
         Outputs:
-            the sorted eigenvalue and eigenvector list 
+            the statistical result 
         """
-        s = None
-        
-        # SETP4: Combine the array result
-        for v in values:
-            v = np.array(v)
-            if s is None: s = np.zeros(np.shape(v), float)  
-            s = s + v
+        if key == "true_label":
+            yield "true_label", reduce(lambda x, y: x + y, [int(v) for v in values])
+        elif key == "false_label":
+            yield "false_label", sum(values)
 
-        # SETP5:singular value decomposition
-        [U, S, V] = np.linalg.svd(s)
-        debug(U) 
-        debug(S)
-        debug(V)
-        # STEP6:sort the SVD and output the matrix(descending order)
-        eigendict = {}
-        for i in range(0, len(S)):
-            eigendict[S[i]] = U[:, i]
-
-        sorted_eigendict = sorted(eigendict.iteritems(), key=itemgetter(0), reverse=True)
-
-        for key, item in sorted_eigendict:
-            yield key, item.tolist()
-
-if __name__ == "__main__":
+if__name__ == "__main__":
     dumbo.run(Mapper, Reducer)

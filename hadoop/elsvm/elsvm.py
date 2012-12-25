@@ -88,22 +88,45 @@ class Mapper():
                 else:
                     resultH = localH
                     resultD = localD
-                
-        yield resultD, resultH
+
+        yield 1, (resultD, resultH)
+
 
 class Reducer(): 
     def __call__(self, key, values):
         """
-        Reducer Program: generator eigenvalue
+        Reducer Program: generate the model arguments
         
         Inputs:
             key: untified id
-            values: covariance 
+            values: resultD and resultH
 
         Outputs:
-            the sorted eigenvalue and eigenvector list 
+            model arguments 
         """
+        globalD = None
+        globalH = None
+
+        for value in values:
+            globalH = globalH + value[1] if globalH is not None else value[1]
+            globalD = globalD + value[0] if globalD is not None else value[0]
         
+        eye_matrix = np.eye(int(self.params["num"]) + 1,
+                            int(self.params["num"] + 1)) / \
+                            int(self.params["v"])
+
+        result_matrix = np.dot(np.linalg.inv(globalH + eye_matrix), globalD)
+
+        result_matrix = np.transpose(result_matrix)
+
+        yield globalH.tolist()
+        yield globalD.tolist()
+        yield self.w_matrix.tolist()
+        yield result_matrix[-1]
+        yield self.params["num"]
+        yield result_matrix.tolist()[:-1]
+        yield self.params["v"]
+
 
 if __name__ == "__main__":
     dumbo.run(Mapper, Reducer)

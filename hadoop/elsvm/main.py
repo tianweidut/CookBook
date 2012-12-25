@@ -9,7 +9,6 @@ import sys
 from random import randint
 
 import numpy as np
-import dumbo
 
 from debug import debug
 
@@ -20,11 +19,6 @@ __description__ = "main-wrapper for elsvm"
 SEP = ','   # Parse from file
 HADOOP_PATH = os.environ["HADOOP_HOME"]
 
-
-def main():
-    """
-    Main wrapper
-    """
 
 class Parse():
     def __call__(self):
@@ -120,7 +114,7 @@ class ElsvmWrapper():
         # STEP1: dumbo main start
         args = " dumbo start " + self.exe_elsvm      
         if self.is_hadoop:
-            args += " - hadoop " + HADOOP_PATH 
+            args += " -hadoop " + HADOOP_PATH 
 
         args += " -input " + os.path.join(self.data_path, self.sample_name)
         args += " -output " + os.path.join(self.output_path, self.output_name)
