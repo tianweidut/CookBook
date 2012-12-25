@@ -35,7 +35,6 @@ def load_w_matrix(filename):
 
     f.close()
 
-    debug(matrix)
     return matrix
 
 
@@ -60,9 +59,10 @@ class Mapper():
         point[-1] = 1
         point = np.dot(point, self.w_matrix)
         point_list = map(lambda x: 1 / (1 + pow(e, -x)), point.tolist())
-        point = np.concatenate((np.array(point_list), np.array([-1])))
+        point = np.array(point_list + [-1], dtype=np.float64)
+        point.shape = (1, int(np.shape(point)[0]))
 
-        return (np.dot(np.transpose(point), point), y * point)
+        return (np.dot(point.T, point), y * point.T)
 
     def __call__(self, data):
         """
@@ -84,6 +84,7 @@ class Mapper():
             for term in doc.split("\n"):
                 point = np.fromstring(term, dtype=np.float64, sep=SEP)
                 (localH, localD) = self.calculate(point) 
+                
                 if resultH is not None:
                     resultH = resultH + localH
                     resultD = resultD + localD
@@ -122,13 +123,15 @@ class Reducer():
                             int(self.params["v"])
 
         result_matrix = np.dot(np.linalg.inv(globalH + eye_matrix), globalD)
-
-        result_matrix = np.transpose(result_matrix)
+        result_matrix.shape = (int(np.shape(result_matrix)[0]), 1)        
+        result_matrix = result_matrix.T
+        
+        debug(result_matrix)
 
         yield globalH, globalD, \
                 self.w_matrix.tolist(), \
-                result_matrix[-1].tolist(), self.params["num"],  \
-                result_matrix[:-1].tolist(), self.params["v"]
+                result_matrix[0, -1].tolist(), self.params["num"],  \
+                result_matrix[0, :-1].tolist(), self.params["v"]
         
 
 if __name__ == "__main__":

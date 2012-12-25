@@ -6,9 +6,7 @@ Created on 2012-12-24
 '''
 import os
 import sys
-import random 
-
-import numpy as np
+import random
 
 __author__ = "tianwei"
 __date__ = "December 24 2012"
@@ -109,94 +107,103 @@ class ElsvmWrapper():
         f.close()
 
         print "------Finish generate w matrix------"
+    
+    def mapreduce_routine(self, exe_program,input_file, output_file,
+            access_args="",
+            content=""):
+        """
+        """
+        args = " dumbo start " + exe_program      
+        if self.is_hadoop:
+            args += " -hadoop " + HADOOP_PATH 
+
+        args += " -input " + input_file
+        args += " -output " + output_file
+        args += " -overwrite yes "
+        args += access_args
+         
+        print args
+        print "+++In map-reduce phase+++"
+        ret = os.system(args)
+
+        if ret != 0:
+            raise ValueError("%s process error!"%(content))
+        else:
+            print "---------Finish the %s process --------"%(content)
+
+    def cat_routine(self, input_file, output_file):
+        """
+        """
+        print "------Now we dump the output ------"
+
+        args = ""
+        args += " dumbo cat "
+        args += input_file
+        args += " -hadoop " + HADOOP_PATH
+
+        args += " > " + output_file
+
+        print args 
+
+        ret = os.system(args)
+
+        if ret != 0:
+            raise ValueError("Dump process failed!")
+        else:
+            print "-----finish the dump process-----"
 
     def mapreduce(self):
         """
         mapreduce in hadoop
         """
         # STEP1: dumbo main start
-        args = " dumbo start " + self.exe_elsvm      
+        access_args = " -param v='%s' " % (self.v)
+        access_args += " -param num='%s' " % (self.num)
+        
         if self.is_hadoop:
-            args += " -hadoop " + HADOOP_PATH 
-
-        args += " -input " + os.path.join(self.data_path, self.sample_name)
-        args += " -output " + os.path.join(self.output_path, self.output_name)
- 
-        args += " -param v='%s' " % (self.v)
-        args += " -param num='%s' " % (self.num)
-        args += " -overwrite yes "
-
-        if self.is_hadoop:
-            args += " -file " + self.w_matrix_filename
-            args += " -param w_matrix_filename='%s' " % \
+            access_args += " -file " + self.w_matrix_filename
+            access_args += " -param w_matrix_filename='%s' " % \
                 (os.path.basename(self.w_matrix_filename))
         else:
-            args += " -param w_matrix_filename='%s' " % \
+            access_args += " -param w_matrix_filename='%s' " % \
                 (self.w_matrix_filename)
 
-        print args
-        print "+++In map-reduce phase+++"
-        ret = os.system(args)
-        if ret != 0:
-            raise ValueError("EL-SVM process error!")
-        else:
-            print "------Finish the EL-SVM training process ----"
+        self.mapreduce_routine(exe_program=self.exe_elsvm,
+                    input_file=os.path.join(self.data_path, self.sample_name),
+                    output_file=os.path.join(self.output_path, self.output_name),
+                    access_args=access_args,
+                    content="EL-SVM MapReduce Process")
         
         # STEP2: dump output 
+        self.model_args = os.path.join(self.output_path, self.output_name)
         if self.is_hadoop:
-            print "------Now we dump the output ------"
-            
-            args = ""
-            args += " dumbo cat "
-            args += os.path.join(self.output_path, self.output_name)
-            args += " -hadoop " + HADOOP_PATH
-            args += " > " + self.model_args
+            self.cat_routine(
+                    input_file=os.path.join(self.output_path, self.output_name), 
+                    output_file=self.model_args)
 
-            print args 
-
-            ret = os.system(args)
-
-            if ret != 0:
-                raise ValueError("Dump process failed!")
-            else:
-                print "-----finish the dump process-----"
-
-            result_name = self.model_args
-        else:
-            result_name = os.path.join(self.output_path, self.output_name)
-        
-        return result_name
+        return self.model_args
 
     def test(self, models_name):
         """
         """
         # STEP1: dumbo main start
-        args = " dumbo start " + self.exe_test      
-        if self.is_hadoop:
-            args += " -hadoop " + HADOOP_PATH 
-
-        args += " -input " + os.path.join(self.data_path, self.sample_name)
-        args += " -output " + os.path.join(self.output_path, self.output_test)
-
-        args += " -param models_filename='%s' " % \
+        access_args = " -param models_filename='%s' " % \
             os.path.join(self.output_path, self.output_name)
-        args += " -overwrite yes "
+        access_args += " -overwrite yes "
 
         if self.is_hadoop:
-            args += " -file " + models_name
-            args += " -param models_filename='%s' " % \
+            access_args += " -file " + models_name
+            access_args += " -param models_filename='%s' " % \
                     self.output_name
         else:
-            args += " -param models_filename='%s' " % \
+            access_args += " -param models_filename='%s' " % \
                     os.path.join(self.output_path, self.output_name)
 
-        print args
-        ret = os.system(args)
-
-        if ret != 0:
-            raise ValueError("Varify EL-SVM process error!")
-        else:
-            print "------Finish the Varify EL-SVM training process ----"
+        self.mapreduce_routine(exe_program=self.exe_test,
+                    input_file=os.path.join(self.data_path, self.sample_name),
+                    output_file=os.path.join(self.output_path, self.output_test),
+                    access_args=access_args,
+                    content="Varify EL-SVL MapReduce Process")
 
     def run(self):
         """

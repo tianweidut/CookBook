@@ -47,13 +47,12 @@ class Mapper():
         content = f.readlines()
         content = content[0].strip('\n').split('\t')
         
-        #self.w_suffix_matrix = np.array(list(content[2]), dtype=np.float64)
         self.w_suffix_matrix = self.generate_array(content[2],
-                                                element_type=np.float64)
+                                                 element_type=np.float64)
         self.r = float(content[3])
-        #self.w_matrix = np.array(list(content[4]), dtype=np.float64)
+
         self.w_matrix = self.generate_array(content[5],
-                                                element_type=np.float64)
+                                            element_type=np.float64)
         self.w_matrix = np.transpose(self.w_matrix)
 
         f.close()
@@ -70,7 +69,7 @@ class Mapper():
         tmp = map(lambda x: 1 / (1 + pow(e, -x)), point.tolist())
 
         label = 1 if np.dot(tmp, self.w_matrix) - self.r > 0 else -1
-        debug(np.dot(tmp, self.w_matrix)) 
+ 
         if label == 1:
             debug(label)
         return True if label == right_label else False
