@@ -19,29 +19,31 @@ __description__ = "el-svm for the whole splited block data"
 SEP = ','   # Parse from file
 
 
+def load_w_matrix(filename):
+    """
+    load means from the file
+    """
+    f = open(filename)
+    content = f.readlines()
+
+    matrix = None
+
+    for line in content:
+        point = np.fromstring(line, dtype=np.float64, sep=SEP)
+        point = np.array([point])
+        matrix = np.concatenate((matrix, point)) if matrix is not None else point
+
+    f.close()
+
+    debug(matrix)
+    return matrix
+
+
 class Mapper():
     def __init__(self):
         """
         """
-        self.w_matrix = self.load_w_matrix()
-
-    def load_w_matrix(self):
-        """
-        load means from the file
-        """
-        f = open(self.params["w_matrix_filename"])
-        content = f.readlines()
-
-        matrix = None
-
-        for line in content:
-            point = np.fromstring(line, dtype=np.float64, sep=SEP)
-            point = np.array([point])
-            matrix = np.concatenate((matrix, point)) if matrix is not None else point
-
-        f.close()
-
-        return matrix
+        self.w_matrix = load_w_matrix(self.params["w_matrix_filename"])
 
     def calculate(self, point):
         """
@@ -54,13 +56,13 @@ class Mapper():
             localH: a(T) * a
             localD: a * y
         """
-        y = np.array([point[-1]])
+        y = int(point[-1])
         point[-1] = 1
         point = np.dot(point, self.w_matrix)
         point_list = map(lambda x: 1 / (1 + pow(e, -x)), point.tolist())
-        point = np.concatenate((np.array(point_list), np.array([1])))
+        point = np.concatenate((np.array(point_list), np.array([-1])))
 
-        return (np.dot(np.transpose(point), point), np.dot(y, point))
+        return (np.dot(np.transpose(point), point), y * point)
 
     def __call__(self, data):
         """
@@ -89,10 +91,15 @@ class Mapper():
                     resultH = localH
                     resultD = localD
 
-        yield 1, (resultD, resultH)
+        yield 1, (resultD.tolist(), resultH.tolist())
 
 
 class Reducer(): 
+    def __init__(self):
+        """
+        """
+        self.w_matrix = load_w_matrix(self.params["w_matrix_filename"])
+
     def __call__(self, key, values):
         """
         Reducer Program: generate the model arguments
@@ -111,22 +118,18 @@ class Reducer():
             globalH = globalH + value[1] if globalH is not None else value[1]
             globalD = globalD + value[0] if globalD is not None else value[0]
         
-        eye_matrix = np.eye(int(self.params["num"]) + 1,
-                            int(self.params["num"] + 1)) / \
+        eye_matrix = np.eye(int(self.params["num"]) + 1) / \
                             int(self.params["v"])
 
         result_matrix = np.dot(np.linalg.inv(globalH + eye_matrix), globalD)
 
         result_matrix = np.transpose(result_matrix)
 
-        yield globalH.tolist()
-        yield globalD.tolist()
-        yield self.w_matrix.tolist()
-        yield result_matrix[-1]
-        yield self.params["num"]
-        yield result_matrix.tolist()[:-1]
-        yield self.params["v"]
-
+        yield globalH, globalD, \
+                self.w_matrix.tolist(), \
+                result_matrix[-1].tolist(), self.params["num"],  \
+                result_matrix[:-1].tolist(), self.params["v"]
+        
 
 if __name__ == "__main__":
     dumbo.run(Mapper, Reducer)

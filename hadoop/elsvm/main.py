@@ -6,11 +6,9 @@ Created on 2012-12-24
 '''
 import os
 import sys
-from random import randint
+import random 
 
 import numpy as np
-
-from debug import debug
 
 __author__ = "tianwei"
 __date__ = "December 24 2012"
@@ -21,7 +19,7 @@ HADOOP_PATH = os.environ["HADOOP_HOME"]
 
 
 class Parse():
-    def __call__(self):
+    def run(self):
         """
         Opt Parse for command line 
     
@@ -48,7 +46,7 @@ class Parse():
                         help="sample data path")
         parse.add_option("-t", "--output_path", action="store", dest="output_path",
                         help="result output path")
-        parse.add_option("-o", "--output_name", action="store",
+        parse.add_option("-m", "--output_name", action="store",
                         dest="output_name",
                         help="output name")
         parse.add_option("-d", "--dim", action="store", dest="dim",
@@ -66,7 +64,9 @@ class Parse():
             print "-v --v(var) for el-svm"
             print "-s --sampleName sample Name "
             print "please enjoy! From tianwei *_* "
-        return (None, None)
+            return (None, None)
+
+        return (options, args)
 
 
 class ElsvmWrapper():
@@ -75,7 +75,8 @@ class ElsvmWrapper():
     exe_dir = os.path.abspath(os.path.dirname(__file__))
     exe_elsvm = os.path.join(exe_dir, "elsvm.py")
     exe_test = os.path.join(exe_dir, "testsvm.py") 
-    model_args = os.path.join(exe_dir, "model.csv")
+    
+    output_test = "output_test.csv"
 
     def __init__(self, is_hadoop, data_path, output_path,
             n=100, dim=2, v=100,
@@ -85,27 +86,29 @@ class ElsvmWrapper():
         """
         self.is_hadoop = is_hadoop
         self.data_path = data_path
-        self.n = n
-        self.dim = dim
-        self.v = v
+        self.num = int(n)
+        self.dim = int(dim)
+        self.v = int(v)
         self.sample_name = sample_name
-        self.w_matrix_filename = os.path.join(self.exe_dir, "w_matrix_file")
         self.output_name = output_name
         self.output_path = output_path
+        self.w_matrix_filename = os.path.join(self.output_path, "w_matrix_file")
 
     def generate_w_matrix(self):
         """
         generate the random 0-1 matrix
         """
         f = open(self.w_matrix_filename, "w")   
-        for i in range(0, self.dim + 1):
-            l = ",".join([str(randint(-1, 1)) for j in range(0, self.num)])
-            print l
+        for i in range(0, self.dim):
+            l = ",".join([str(random.uniform(-1, 1)) for j in range(0, self.num)])
             f.write(l + "\n")
+
+        l = ",".join([str(random.uniform(0, 1)) for j in range(0, self.num)])
+        f.write(l + "\n")
 
         f.close()
 
-        print "Finish generate w matrix"
+        print "------Finish generate w matrix------"
 
     def mapreduce(self):
         """
@@ -132,6 +135,7 @@ class ElsvmWrapper():
                 (self.w_matrix_filename)
 
         print args
+        print "+++In map-reduce phase+++"
         ret = os.system(args)
         if ret != 0:
             raise ValueError("EL-SVM process error!")
@@ -139,7 +143,7 @@ class ElsvmWrapper():
             print "------Finish the EL-SVM training process ----"
         
         # STEP2: dump output 
-        if self.ishadoop:
+        if self.is_hadoop:
             print "------Now we dump the output ------"
             
             args = ""
@@ -163,10 +167,36 @@ class ElsvmWrapper():
         
         return result_name
 
-    def test(self):
+    def test(self, models_name):
         """
         """
-        pass
+        # STEP1: dumbo main start
+        args = " dumbo start " + self.exe_test      
+        if self.is_hadoop:
+            args += " -hadoop " + HADOOP_PATH 
+
+        args += " -input " + os.path.join(self.data_path, self.sample_name)
+        args += " -output " + os.path.join(self.output_path, self.output_test)
+
+        args += " -param models_filename='%s' " % \
+            os.path.join(self.output_path, self.output_name)
+        args += " -overwrite yes "
+
+        if self.is_hadoop:
+            args += " -file " + models_name
+            args += " -param models_filename='%s' " % \
+                    self.output_name
+        else:
+            args += " -param models_filename='%s' " % \
+                    os.path.join(self.output_path, self.output_name)
+
+        print args
+        ret = os.system(args)
+
+        if ret != 0:
+            raise ValueError("Varify EL-SVM process error!")
+        else:
+            print "------Finish the Varify EL-SVM training process ----"
 
     def run(self):
         """
@@ -181,7 +211,8 @@ class ElsvmWrapper():
         self.test(result_name)
 
 if __name__ == "__main__":
-    (options, args) = Parse()
+    p = Parse()
+    (options, args) = p.run()
     e = ElsvmWrapper(
             is_hadoop=options.is_hadoop,
             data_path=options.path,
