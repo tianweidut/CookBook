@@ -10,13 +10,19 @@ from math import e
 import numpy as np
 import dumbo
 
-from debug import debug
-
 __author__ = "tianwei"
 __date__ = "December 24 2012"
 __description__ = "el-svm for the whole splited block data"
 
 SEP = ','   # Parse from file
+
+
+def debug(content, pos=None):
+    print >> sys.stderr, "+" * 15
+    if pos is not None:
+        print >> sys.stderr, pos
+    print >> sys.stderr, content
+    print >> sys.stderr, "-" * 15
 
 
 def load_w_matrix(filename):
@@ -91,8 +97,11 @@ class Mapper():
                 else:
                     resultH = localH
                     resultD = localD
+        
+        debug(np.shape(resultH))
+        debug(np.shape(resultD))
 
-        yield 1, (resultD.tolist(), resultH.tolist())
+        yield "nonused", (resultD.tolist(), resultH.tolist())
 
 
 class Reducer(): 
@@ -114,25 +123,19 @@ class Reducer():
         """
         globalD = None
         globalH = None
-
+        
         for value in values:
-            globalH = globalH + value[1] if globalH is not None else value[1]
-            globalD = globalD + value[0] if globalD is not None else value[0]
-        
-        eye_matrix = np.eye(int(self.params["num"]) + 1) / \
-                            int(self.params["v"])
+            debug(np.shape(value[1])) 
+            debug(np.shape(value[0])) 
+            globalD = globalD + np.array(value[0]) if globalD is not None else np.array(value[0])
+            globalH = globalH + np.array(value[1]) if globalH is not None else np.array(value[1])
 
-        result_matrix = np.dot(np.linalg.inv(globalH + eye_matrix), globalD)
-        result_matrix.shape = (int(np.shape(result_matrix)[0]), 1)        
-        result_matrix = result_matrix.T
+        debug("global")
+        debug(np.shape(globalH)) 
+        debug(np.shape(globalD)) 
         
-        debug(result_matrix)
-
-        yield globalH, globalD, \
-                self.w_matrix.tolist(), \
-                result_matrix[0, -1].tolist(), self.params["num"],  \
-                result_matrix[0, :-1].tolist(), self.params["v"]
+        yield "nonused", (globalD.tolist(), globalH.tolist())
         
 
 if __name__ == "__main__":
-    dumbo.run(Mapper, Reducer)
+    dumbo.run(Mapper, Reducer, Reducer)
