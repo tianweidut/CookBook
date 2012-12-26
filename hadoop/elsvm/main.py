@@ -5,18 +5,15 @@ Created on 2012-12-24
 @author: tianwei
 '''
 import os
-import random
 
 from parse_cmds import Parse
 from utility_mapreduce import mapreduce_routine, cat_routine
 from w_matrix import generate_w_matrix
+from models import generate_model
 
 __author__ = "tianwei"
 __date__ = "December 24 2012"
 __description__ = "main-wrapper for elsvm"
-
-SEP = ','   # Parse from file
-HADOOP_PATH = os.environ["HADOOP_HOME"]
 
 
 class ElsvmWrapper():
@@ -44,6 +41,7 @@ class ElsvmWrapper():
         self.output_path = output_path
         self.local_path = local_path
         self.w_matrix_filename = os.path.join(self.local_path, "w_matrix_file")
+        self.final_result_filename = os.path.join(self.local_path, "final_result")
 
     def mapreduce(self):
         """
@@ -80,35 +78,68 @@ class ElsvmWrapper():
         """
         """
         # STEP1: dumbo main start
-        access_args = " -param models_filename='%s' " % \
-            os.path.join(self.local_path, self.output_name)
-        access_args += " -overwrite yes "
+        access_args = " -overwrite yes "
 
         if self.is_hadoop:
             access_args += " -file " + models_name
-            access_args += " -param models_filename='%s' " % \
-                    self.output_name
-        else:
-            access_args += " -param models_filename='%s' " % \
-                    os.path.join(self.output_path, self.output_name)
+
+        access_args += " -param models_filename='%s' " % \
+                    os.path.basename(models_name)
 
         mapreduce_routine(is_hadoop=self.is_hadoop, exe_program=self.exe_test,
                     input_file=os.path.join(self.data_path, self.sample_name),
                     output_file=os.path.join(self.output_path, self.output_test),
                     access_args=access_args,
                     content="Varify EL-SVL MapReduce Process")
+        
+        # STEP2: dump the result
+        if self.is_hadoop:
+            cat_routine(
+                    input_file=os.path.join(self.output_path, self.output_test),
+                    output_file=self.final_result_filename)
+        self.show_result() 
+
+    def show_result(self):
+        """
+        """
+        f = open(self.final_result_filename,"r")
+        contents = f.readlines() 
+
+        true_cnt = int(contents[0].split("\t")[1])
+        false_cnt = int(contents[1].split("\t")[1])
+
+        print "true:%d, false:%d" % (true_cnt, false_cnt)
+        total_num = true_cnt + false_cnt
+        if total_num > 10000:
+            print "total nums:%d w" % (total_num / 10000)
+        elif total_num > 1000:
+            print "total nums:%d k" % (total_num / 1000)
+        else:
+            print "total nums:%d " % (total_num)
+
+        print "accuracy rate: %f%% " % (true_cnt / float(total_num) * 100.0)
+
+        f.close()
 
     def run(self):
         """
         """
         # STEP1: generate random matrix w
-        self.generate_w_matrix()
+        generate_w_matrix(filename=self.w_matrix_filename,
+                        dim=self.dim,
+                        num=self.num)
 
         # STEP2: map-reduce
         result_name = self.mapreduce()
-
+        
+        # STEP3: generate model 
+        result_name2 = generate_model(input_filename=result_name,
+                                    output_filename=result_name+"2", 
+                                    w_matrix_filename=self.w_matrix_filename,
+                                    num=self.num,
+                                    v=self.v)
         # STEP3: test for mapreduce
-        self.test(result_name)
+        self.test(result_name2)
 
 if __name__ == "__main__":
     p = Parse()

@@ -24,8 +24,8 @@ def generate_w_matrix(filename, dim, num):
         l = ",".join([str(random.uniform(-1, 1)) for j in range(0, num)])
         f.write(l + "\n")
 
-        l = ",".join([str(random.uniform(0, 1)) for j in range(0, num)])
-        f.write(l + "\n")
+    l = ",".join([str(random.uniform(0, 1)) for j in range(0, num)])
+    f.write(l + "\n")
 
     f.close()
 

@@ -6,6 +6,8 @@ Created on 2012-12-26
 '''
 import numpy as np
 
+from w_matrix import read_w_matrix
+
 __author__ = "tianwei"
 __date__ = "December 26 2012"
 __description__ = "generate model args from map-reduce dump file"
@@ -42,24 +44,6 @@ def read_matrix(f):
     return (globalD, globalH)
 
 
-def read_w_matrix(filename):
-    """
-    """
-    f = open(filename)
-    content = f.readlines()
-
-    matrix = None
-
-    for line in content:
-        point = np.fromstring(line, dtype=np.float64, sep=SEP)
-        point = np.array([point])
-        matrix = np.concatenate((matrix, point)) if matrix is not None else point
-
-    f.close()
-
-    return matrix
-
-
 def generate_model(input_filename, output_filename,
                     w_matrix_filename=None, 
                     num=20, v=100):
@@ -91,6 +75,8 @@ def generate_model(input_filename, output_filename,
 
     fin.close()
     fout.close()
+
+    return output_filename
 
 def test():
     """

@@ -10,13 +10,19 @@ from math import e
 import numpy as np
 import dumbo
 
-from debug import debug
-
 __author__ = "tianwei"
 __date__ = "December 24  2012"
 __description__ = "mapreduce test for el-svm"
 
 SEP = ','   # Parse from file
+
+
+def debug(content, pos=None):
+    print >> sys.stderr, "+" * 15
+    if pos is not None:
+        print >> sys.stderr, pos
+    print >> sys.stderr, content
+    print >> sys.stderr, "-" * 15
 
 
 class Mapper():
@@ -70,8 +76,6 @@ class Mapper():
 
         label = 1 if np.dot(tmp, self.w_matrix) - self.r > 0 else -1
  
-        if label == 1:
-            debug(label)
         return True if label == right_label else False
 
     def __call__(self, data):
