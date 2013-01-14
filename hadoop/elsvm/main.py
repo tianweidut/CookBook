@@ -2,6 +2,8 @@
 '''
 Created on 2012-12-24
 
+Updated on 2013-01-13
+
 @author: tianwei
 '''
 import os
@@ -10,6 +12,8 @@ from parse_cmds import Parse
 from utility_mapreduce import mapreduce_routine, cat_routine
 from w_matrix import generate_w_matrix
 from models import generate_model
+
+from config_acc import DATASETS,A_INC
 
 __author__ = "tianwei"
 __date__ = "December 24 2012"
@@ -21,12 +25,13 @@ class ElsvmWrapper():
     """
     exe_dir = os.path.abspath(os.path.dirname(__file__))
     exe_elsvm = os.path.join(exe_dir, "elsvm.py")
-    exe_test = os.path.join(exe_dir, "testsvm.py") 
+    exe_test = os.path.join(exe_dir, "testsvm.py")
 
     output_test = "output_test.csv"
 
     def __init__(self, is_hadoop, data_path, output_path, local_path=None,
             n=100, dim=2, v=100,
+            is_increment=False,
             sample_name="elsvm_data.csv",
             output_name="elsvm_output.csv"):
         """
@@ -42,8 +47,9 @@ class ElsvmWrapper():
         self.local_path = local_path
         self.w_matrix_filename = os.path.join(self.local_path, "w_matrix_file")
         self.final_result_filename = os.path.join(self.local_path, "final_result")
+        self.is_increment = is_increment
 
-    def mapreduce(self):
+    def mapreduce(self, sample_name, output_name):
         """
         mapreduce in hadoop
         """
@@ -60,21 +66,21 @@ class ElsvmWrapper():
                 (self.w_matrix_filename)
 
         mapreduce_routine(is_hadoop=self.is_hadoop, exe_program=self.exe_elsvm,
-                    input_file=os.path.join(self.data_path, self.sample_name),
-                    output_file=os.path.join(self.output_path, self.output_name),
+                    input_file=os.path.join(self.data_path, sample_name),
+                    output_file=os.path.join(self.output_path, output_name),
                     access_args=access_args,
                     content="EL-SVM MapReduce Process")
-        
+
         # STEP2: dump output 
-        self.model_args = os.path.join(self.local_path, self.output_name)
+        self.model_args = os.path.join(self.local_path, output_name)
         if self.is_hadoop:
             cat_routine(
-                    input_file=os.path.join(self.output_path, self.output_name), 
+                    input_file=os.path.join(self.output_path, output_name),
                     output_file=self.model_args)
 
         return self.model_args
 
-    def test(self, models_name):
+    def test(self, models_name, input_name, output_name):
         """
         """
         # STEP1: dumbo main start
@@ -84,40 +90,44 @@ class ElsvmWrapper():
             access_args += " -file " + models_name
 
         access_args += " -param models_filename='%s' " % \
-                    os.path.basename(models_name)
+                       os.path.basename(models_name)
 
-        mapreduce_routine(is_hadoop=self.is_hadoop, exe_program=self.exe_test,
-                    input_file=os.path.join(self.data_path, self.sample_name),
-                    output_file=os.path.join(self.output_path, self.output_test),
-                    access_args=access_args,
-                    content="Varify EL-SVL MapReduce Process")
-        
+        mapreduce_routine(is_hadoop=self.is_hadoop,
+                          exe_program=self.exe_test,
+                          input_file=os.path.join(self.data_path,
+                                                  input_name),
+                          output_file=os.path.join(self.output_path,
+                                                   output_name),
+                          access_args=access_args,
+                          content="Varify EL-SVL MapReduce Process")
+
         # STEP2: dump the result
         if self.is_hadoop:
-            cat_routine(
-                    input_file=os.path.join(self.output_path, self.output_test),
-                    output_file=self.final_result_filename)
-        self.show_result() 
+            cat_routine(input_file=os.path.join(self.output_path,
+                                                output_name),
+                        output_file=self.final_result_filename)
 
     def show_result(self):
         """
         """
-        f = open(self.final_result_filename,"r")
-        contents = f.readlines() 
+        f = open(self.final_result_filename, "r")
+        contents = f.readlines()
 
-        true_cnt = int(contents[0].split("\t")[1])
-        false_cnt = int(contents[1].split("\t")[1])
+        # Parse multi-lines
+        for i in range(0, len(contents) / 2):
+            true_cnt = int(contents[i].split("\t")[1])
+            false_cnt = int(contents[i + 1].split("\t")[1])
 
-        print "true:%d, false:%d" % (true_cnt, false_cnt)
-        total_num = true_cnt + false_cnt
-        if total_num > 10000:
-            print "total nums:%d w" % (total_num / 10000)
-        elif total_num > 1000:
-            print "total nums:%d k" % (total_num / 1000)
-        else:
-            print "total nums:%d " % (total_num)
+            print "true:%d, false:%d" % (true_cnt, false_cnt)
+            total_num = true_cnt + false_cnt
+            if total_num > 10000:
+                print "total nums:%d w" % (total_num / 10000)
+            elif total_num > 1000:
+                print "total nums:%d k" % (total_num / 1000)
+            else:
+                print "total nums:%d " % (total_num)
 
-        print "accuracy rate: %f%% " % (true_cnt / float(total_num) * 100.0)
+            print "accuracy rate: %f%% " % (true_cnt / float(total_num) * 100.0)
 
         f.close()
 
@@ -126,33 +136,77 @@ class ElsvmWrapper():
         """
         # STEP1: generate random matrix w
         generate_w_matrix(filename=self.w_matrix_filename,
-                        dim=self.dim,
-                        num=self.num)
+                          dim=self.dim,
+                          num=self.num)
 
-        # STEP2: map-reduce
-        result_name = self.mapreduce()
-        
-        # STEP3: generate model 
+        # STEP2: mode choice
+        if self.is_increment:
+            self.run_increment_mode()
+        else:
+            self.run_single_mode()
+
+        # STEP3: final result
+        self.show_result()
+
+    def run_increment_mode(self):
+        """
+        increment modle
+        """
+        model_name = None
+        for cnt, sample_name in enumerate(DATASETS):
+            # STEP1: accuracy result
+            if cnt != 0:
+                self.test(models_name=model_name,
+                          input_name=sample_name,
+                          output_name=self.output_test)
+
+            # STEP2: call mapreduce, generate raw H and D
+            output_name = sample_name + "out"
+            result_name = self.mapreduce(sample_name=sample_name,
+                                         output_name=output_name)
+
+            # STEP3: generate incremented model
+            model_name = generate_model(input_filename=result_name,
+                                        output_filename=result_name + "2",
+                                        w_matrix_filename=self.w_matrix_filename,
+                                        num=self.num,
+                                        v=self.v,
+                                        is_increment=True,
+                                        a_inc=float(A_INC))
+
+    def run_single_mode(self):
+        """
+        traditional single mode
+        """
+        # STEP1: map-reduce
+        result_name = self.mapreduce(sample_name=self.sample_name,
+                                     output_name=self.output_name)
+
+        # STEP2: generate model
         result_name2 = generate_model(input_filename=result_name,
-                                    output_filename=result_name+"2", 
-                                    w_matrix_filename=self.w_matrix_filename,
-                                    num=self.num,
-                                    v=self.v)
+                                      output_filename=result_name + "2",
+                                      w_matrix_filename=self.w_matrix_filename,
+                                      num=self.num,
+                                      v=self.v)
+
         # STEP3: test for mapreduce
-        self.test(result_name2)
+        self.test(models_name=result_name2,
+                  input_name=self.sample_name,
+                  output_name=self.output_test)
+
 
 if __name__ == "__main__":
     p = Parse()
     (options, args) = p.run()
-    e = ElsvmWrapper(
-            is_hadoop=options.is_hadoop,
-            data_path=options.path,
-            n=options.num,
-            v=options.var,
-            dim=options.dim,
-            output_name=options.output_name,
-            output_path=options.output_path,
-            local_path=options.local_path,
-            sample_name=options.sample_name)
-    e.run() 
+    e = ElsvmWrapper(is_hadoop=options.is_hadoop,
+                     data_path=options.path,
+                     n=options.num,
+                     v=options.var,
+                     dim=options.dim,
+                     output_name=options.output_name,
+                     output_path=options.output_path,
+                     local_path=options.local_path,
+                     sample_name=options.sample_name,
+                     is_increment=options.is_increment)
 
+    e.run()
