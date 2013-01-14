@@ -14,7 +14,8 @@ __author__ = "tianwei"
 __date__ = "December 24 2012"
 __description__ = "el-svm for the whole splited block data"
 
-SEP = ','   # Parse from file
+SEP = ' '   # Parse from file
+SEP_local = ","
 
 
 def debug(content, pos=None):
@@ -35,7 +36,7 @@ def load_w_matrix(filename):
     matrix = None
 
     for line in content:
-        point = np.fromstring(line, dtype=np.float64, sep=SEP)
+        point = np.fromstring(line, dtype=np.float64, sep=SEP_local)
         point = np.array([point])
         matrix = np.concatenate((matrix, point)) if matrix is not None else point
 
