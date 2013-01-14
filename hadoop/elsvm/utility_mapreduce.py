@@ -47,7 +47,7 @@ def cat_routine(input_file, output_file):
     args += input_file
     args += " -hadoop " + HADOOP_PATH
 
-    args += " > " + output_file
+    args += " >> " + output_file
 
     print args
 
