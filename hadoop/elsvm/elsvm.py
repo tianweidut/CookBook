@@ -14,7 +14,7 @@ __author__ = "tianwei"
 __date__ = "December 24 2012"
 __description__ = "el-svm for the whole splited block data"
 
-SEP = ' '   # Parse from file
+SEP = ','   # Parse from file
 SEP_local = ","
 
 
@@ -73,39 +73,39 @@ class Mapper():
 
     def __call__(self, data):
         """
-        Mapper Program:    
+        Mapper Program:
 
-        Inputs: 
+        Inputs:
             data, which is the whole split block data
 
         Outputs:
             key: untified id
-            value: resultD,resultH 
+            value: resultD,resultH
         """
-        
-        # SETP1: read data matrix and do some transpose 
+
+        # SETP1: read data matrix and do some transpose
         resultH = None
         resultD = None
 
         for docID, doc in data:
             for term in doc.split("\n"):
                 point = np.fromstring(term, dtype=np.float64, sep=SEP)
-                (localH, localD) = self.calculate(point) 
-                
+                (localH, localD) = self.calculate(point)
+
                 if resultH is not None:
                     resultH = resultH + localH
                     resultD = resultD + localD
                 else:
                     resultH = localH
                     resultD = localD
-        
+
         debug(np.shape(resultH))
         debug(np.shape(resultD))
 
         yield "nonused", (resultD.tolist(), resultH.tolist())
 
 
-class Reducer(): 
+class Reducer():
     def __init__(self):
         """
         """
@@ -114,29 +114,29 @@ class Reducer():
     def __call__(self, key, values):
         """
         Reducer Program: generate the model arguments
-        
+
         Inputs:
             key: untified id
             values: resultD and resultH
 
         Outputs:
-            model arguments 
+            model arguments
         """
         globalD = None
         globalH = None
-        
+
         for value in values:
-            debug(np.shape(value[1])) 
-            debug(np.shape(value[0])) 
+            debug(np.shape(value[1]))
+            debug(np.shape(value[0]))
             globalD = globalD + np.array(value[0]) if globalD is not None else np.array(value[0])
             globalH = globalH + np.array(value[1]) if globalH is not None else np.array(value[1])
 
         debug("global")
-        debug(np.shape(globalH)) 
-        debug(np.shape(globalD)) 
-        
+        debug(np.shape(globalH))
+        debug(np.shape(globalD))
+
         yield "nonused", (globalD.tolist(), globalH.tolist())
-        
+
 
 if __name__ == "__main__":
     dumbo.run(Mapper, Reducer, Reducer)

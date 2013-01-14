@@ -15,6 +15,7 @@ __date__ = "December 24  2012"
 __description__ = "mapreduce test for el-svm"
 
 SEP = ','   # Parse from file
+SEP_local = ','   # Parse from file
 
 
 def debug(content, pos=None):
@@ -38,11 +39,11 @@ class Mapper():
         matrix = None
         whole_list = string_list.strip("[").strip("]").split("],")
         for s in whole_list:
-            s = s.replace("[", " ").replace("]", " ").strip(" ") 
-            s = np.array([np.fromstring(s, dtype=element_type, sep=SEP)]) 
+            s = s.replace("[", " ").replace("]", " ").strip(" ")
+            s = np.array([np.fromstring(s, dtype=element_type, sep=SEP_local)])
             matrix = np.concatenate((matrix, s)) \
-                    if matrix is not None else s
-        
+                     if matrix is not None else s
+
         return matrix
 
     def load_models(self):
@@ -52,9 +53,9 @@ class Mapper():
         f = open(self.params["models_filename"])
         content = f.readlines()
         content = content[0].strip('\n').split('\t')
-        
+
         self.w_suffix_matrix = self.generate_array(content[2],
-                                                 element_type=np.float64)
+                                                   element_type=np.float64)
         self.r = float(content[3])
 
         self.w_matrix = self.generate_array(content[5],
@@ -75,14 +76,14 @@ class Mapper():
         tmp = map(lambda x: 1 / (1 + pow(e, -x)), point.tolist())
 
         label = 1 if np.dot(tmp, self.w_matrix) - self.r > 0 else -1
- 
+
         return True if label == right_label else False
 
     def __call__(self, data):
         """
         Mapper Program 
         """
-        
+
         true_cnt = 0
         false_cnt = 0
 
@@ -93,7 +94,7 @@ class Mapper():
                     true_cnt = true_cnt + 1
                 else:
                     false_cnt = false_cnt + 1
-        
+
         debug(true_cnt)
         debug(false_cnt)
         yield "true_label", true_cnt

@@ -14,13 +14,13 @@ HADOOP_PATH = os.environ["HADOOP_HOME"]
 
 
 def mapreduce_routine(is_hadoop, exe_program, input_file, output_file,
-            access_args="",
-            content=""):
+                      access_args="",
+                      content=""):
     """
     """
-    args = " dumbo start " + exe_program      
+    args = " dumbo start " + exe_program
     if is_hadoop:
-        args += " -hadoop " + HADOOP_PATH 
+        args += " -hadoop " + HADOOP_PATH
 
     args += " -input " + input_file
     args += " -output " + output_file

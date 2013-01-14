@@ -16,7 +16,8 @@ __date__ = "December 26 2012"
 __description__ = "generate model args from map-reduce dump file, \
                     the new version support increment model"
 
-SEP = ","
+SEP = " "
+SEP_local = ","
 
 history_globalH = None
 history_globalD = None
@@ -30,9 +31,9 @@ def generate_array(string_list, element_type):
         whole_list = string_list.strip("[").strip("]").split("],")
         for s in whole_list:
             s = s.replace("[", " ").replace("]", " ").strip(" ")
-            s = np.array([np.fromstring(s, dtype=element_type, sep=SEP)]) 
+            s = np.array([np.fromstring(s, dtype=element_type, sep=SEP_local)])
             matrix = np.concatenate((matrix, s)) \
-                    if matrix is not None else s
+                     if matrix is not None else s
 
         return matrix
 
@@ -52,10 +53,10 @@ def read_matrix(f):
 
 
 def generate_model(input_filename, output_filename,
-                    w_matrix_filename=None, 
-                    num=20, v=100,
-                    is_increment=False,
-                    a_inc=None):
+                   w_matrix_filename=None,
+                   num=20, v=100,
+                   is_increment=False,
+                   a_inc=None):
     """
     generate models args from dump file
     we can also import increment model
@@ -76,10 +77,11 @@ def generate_model(input_filename, output_filename,
     # According to the model selection(whether increment or not)
     # decide how to generate model
     if is_increment:
-        print is_increment
+        print "***use incremented model***"
+        print history_globalH, history_globalD
         # here, we will use increment mode to update globalH and globalD.
-        (globalH, globalD) = update_increment_model(globalH, globalD, a_inc)
-    
+        #(globalH, globalD) = update_increment_model(globalH, globalD, a_inc)
+
     # update H and D
     global history_globalD
     global history_globalH
@@ -126,8 +128,8 @@ def test():
     """
     """
     generate_model(input_filename="/home/hadoop/example/elsvm/result/el_svm.csv",
-            output_filename="/home/hadoop/example/elsvm/result/el_svm2.csv",
-            w_matrix_filename='/home/hadoop/example/elsvm/result/w_matrix_file')
+                   output_filename="/home/hadoop/example/elsvm/result/el_svm2.csv",
+                   w_matrix_filename='/home/hadoop/example/elsvm/result/w_matrix_file')
 
 if __name__ == "__main__":
     test()

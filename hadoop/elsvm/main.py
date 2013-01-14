@@ -32,7 +32,7 @@ class ElsvmWrapper():
     def __init__(self, is_hadoop, data_path, output_path, local_path=None,
                  n=100, dim=2, v=100,
                  is_increment=False,
-                 sample_name="elsvm_data.csv",
+                 sample_name=None,
                  output_name="elsvm_output.csv"):
         """
         """
@@ -64,6 +64,7 @@ class ElsvmWrapper():
         output result incremented model
         """
         if self.is_increment:
+            print self.inc_model_str
             self.final_result_filename_inc_f.close()
 
     def mapreduce(self, sample_name, output_name):
@@ -135,28 +136,27 @@ class ElsvmWrapper():
         tmp = "\n" + "*" * 20 + "\n"
 
         # Parse multi-lines
-        for i in range(0, len(contents) / 2):
-            true_cnt = int(contents[i * 2].split("\t")[1])
-            false_cnt = int(contents[i * 2 + 1].split("\t")[1])
+        true_cnt = int(contents[0].split("\t")[1])
+        false_cnt = int(contents[1].split("\t")[1])
 
-            tmp += "true:%d, false:%d \n" % (true_cnt, false_cnt)
-            total_num = true_cnt + false_cnt
-            if total_num > 10000:
-                tmp += "total nums:%d w \n" % (total_num / 10000)
-            elif total_num > 1000:
-                tmp += "total nums:%d k \n" % (total_num / 1000)
-            else:
-                tmp += "total nums:%d \n" % (total_num)
+        tmp += "true:%d, false:%d \n" % (true_cnt, false_cnt)
+        total_num = true_cnt + false_cnt
+        if total_num > 10000:
+            tmp += "total nums:%d w \n" % (total_num / 10000)
+        elif total_num > 1000:
+            tmp += "total nums:%d k \n" % (total_num / 1000)
+        else:
+            tmp += "total nums:%d \n" % (total_num)
 
-            tmp +=  "accuracy rate: %f%% \n" % (true_cnt / float(total_num) * 100.0)
+        tmp += "accuracy rate: %f%% \n" % (true_cnt / float(total_num) * 100.0)
 
-            tmp += "\n" + "*" * 20 + "\n"
+        tmp += "\n" + "*" * 20 + "\n"
 
-            # output result
-            print tmp
-            if self.is_increment:
-                self.inc_model_str += tmp
-                print >> self.final_result_filename_inc_f, tmp
+        # output result
+        print tmp
+        if self.is_increment:
+            self.inc_model_str += tmp
+            print >> self.final_result_filename_inc_f, tmp
 
         f.close()
 
