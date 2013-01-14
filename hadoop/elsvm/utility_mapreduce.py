@@ -37,7 +37,7 @@ def mapreduce_routine(is_hadoop, exe_program, input_file, output_file,
         print "---------Finish the %s process --------" % (content)
 
 
-def cat_routine(input_file, output_file):
+def cat_routine(input_file, output_file, is_added=False):
     """
     """
     print "------Now we dump the output ------"
@@ -47,7 +47,10 @@ def cat_routine(input_file, output_file):
     args += input_file
     args += " -hadoop " + HADOOP_PATH
 
-    args += " >> " + output_file
+    if is_added:
+        args += " >> " + output_file
+    else:
+        args += " > " + output_file
 
     print args
 
