@@ -47,6 +47,10 @@ class Parse():
                         help="output name")
         parse.add_option("-d", "--dim", action="store", dest="dim",
                         help="dim number for sample data")
+        parse.add_option("-i", "--enableIncrement", action="store_true", dest="is_increment",
+                        help="use increment mode")
+        parse.add_option("-z", "--disableIncrement", action="store_false", dest="is_increment",
+                        help="disable increment mode")
 
         (options, args) = parse.parse_args()
 
@@ -59,6 +63,8 @@ class Parse():
             print "-d --dim for sample data "
             print "-v --v(var) for el-svm"
             print "-s --sampleName sample Name "
+            print "current args version is not completed, please get more\
+            information fro code, sorry for that!"
             print "please enjoy! From tianwei *_* "
             return (None, None)
 
