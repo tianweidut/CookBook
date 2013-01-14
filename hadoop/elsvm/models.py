@@ -76,6 +76,7 @@ def generate_model(input_filename, output_filename,
     # According to the model selection(whether increment or not)
     # decide how to generate model
     if is_increment:
+        print is_increment
         # here, we will use increment mode to update globalH and globalD.
         (globalH, globalD) = update_increment_model(globalH, globalD, a_inc)
     

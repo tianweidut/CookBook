@@ -13,7 +13,7 @@ from utility_mapreduce import mapreduce_routine, cat_routine
 from w_matrix import generate_w_matrix
 from models import generate_model
 
-from config_acc import DATASETS,A_INC
+from config_acc import DATASETS, A_INC
 
 __author__ = "tianwei"
 __date__ = "December 24 2012"
@@ -30,10 +30,10 @@ class ElsvmWrapper():
     output_test = "output_test.csv"
 
     def __init__(self, is_hadoop, data_path, output_path, local_path=None,
-            n=100, dim=2, v=100,
-            is_increment=False,
-            sample_name="elsvm_data.csv",
-            output_name="elsvm_output.csv"):
+                 n=100, dim=2, v=100,
+                 is_increment=False,
+                 sample_name="elsvm_data.csv",
+                 output_name="elsvm_output.csv"):
         """
         """
         self.is_hadoop = is_hadoop
@@ -48,6 +48,23 @@ class ElsvmWrapper():
         self.w_matrix_filename = os.path.join(self.local_path, "w_matrix_file")
         self.final_result_filename = os.path.join(self.local_path, "final_result")
         self.is_increment = is_increment
+        if self.is_increment:
+            self.result_inc_init()
+
+    def result_inc_init(self):
+        """
+        incremented model file init
+        """
+        self.final_result_filename_inc = os.path.join(self.local_path, "final_result_inc")
+        self.final_result_filename_inc_f = open(self.final_result_filename_inc, "w")
+        self.inc_model_str = ""
+
+    def result_close(self):
+        """
+        output result incremented model
+        """
+        if self.is_increment:
+            self.final_result_filename_inc_f.close()
 
     def mapreduce(self, sample_name, output_name):
         """
@@ -66,17 +83,17 @@ class ElsvmWrapper():
                 (self.w_matrix_filename)
 
         mapreduce_routine(is_hadoop=self.is_hadoop, exe_program=self.exe_elsvm,
-                    input_file=os.path.join(self.data_path, sample_name),
-                    output_file=os.path.join(self.output_path, output_name),
-                    access_args=access_args,
-                    content="EL-SVM MapReduce Process")
+                          input_file=os.path.join(self.data_path, sample_name),
+                          output_file=os.path.join(self.output_path, output_name),
+                          access_args=access_args,
+                          content="EL-SVM MapReduce Process")
 
-        # STEP2: dump output 
+        # STEP2: dump output
         self.model_args = os.path.join(self.local_path, output_name)
         if self.is_hadoop:
-            cat_routine(
-                    input_file=os.path.join(self.output_path, output_name),
-                    output_file=self.model_args)
+            cat_routine(input_file=os.path.join(self.output_path,
+                                                output_name),
+                        output_file=self.model_args)
 
         return self.model_args
 
@@ -106,6 +123,8 @@ class ElsvmWrapper():
             cat_routine(input_file=os.path.join(self.output_path,
                                                 output_name),
                         output_file=self.final_result_filename)
+        # STEP3: output result
+        self.show_result()
 
     def show_result(self):
         """
@@ -113,21 +132,31 @@ class ElsvmWrapper():
         f = open(self.final_result_filename, "r")
         contents = f.readlines()
 
+        tmp = "\n" + "*" * 20 + "\n"
+
         # Parse multi-lines
         for i in range(0, len(contents) / 2):
-            true_cnt = int(contents[i].split("\t")[1])
-            false_cnt = int(contents[i + 1].split("\t")[1])
+            true_cnt = int(contents[i * 2].split("\t")[1])
+            false_cnt = int(contents[i * 2 + 1].split("\t")[1])
 
-            print "true:%d, false:%d" % (true_cnt, false_cnt)
+            tmp += "true:%d, false:%d \n" % (true_cnt, false_cnt)
             total_num = true_cnt + false_cnt
             if total_num > 10000:
-                print "total nums:%d w" % (total_num / 10000)
+                tmp += "total nums:%d w \n" % (total_num / 10000)
             elif total_num > 1000:
-                print "total nums:%d k" % (total_num / 1000)
+                tmp += "total nums:%d k \n" % (total_num / 1000)
             else:
-                print "total nums:%d " % (total_num)
+                tmp += "total nums:%d \n" % (total_num)
 
-            print "accuracy rate: %f%% " % (true_cnt / float(total_num) * 100.0)
+            tmp +=  "accuracy rate: %f%% \n" % (true_cnt / float(total_num) * 100.0)
+
+            tmp += "\n" + "*" * 20 + "\n"
+
+            # output result
+            print tmp
+            if self.is_increment:
+                self.inc_model_str += tmp
+                print >> self.final_result_filename_inc_f, tmp
 
         f.close()
 
@@ -145,8 +174,8 @@ class ElsvmWrapper():
         else:
             self.run_single_mode()
 
-        # STEP3: final result
-        self.show_result()
+        # STEP 3: (optional) close inc model mode
+        self.result_close()
 
     def run_increment_mode(self):
         """
