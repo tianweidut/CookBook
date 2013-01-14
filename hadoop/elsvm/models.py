@@ -21,6 +21,7 @@ SEP = ","
 history_globalH = None
 history_globalD = None
 
+
 def generate_array(string_list, element_type):
         """
         generate narray from string list
@@ -63,7 +64,7 @@ def generate_model(input_filename, output_filename,
         a_inc : args of a
         is_increment: whether increment model or not
     """
-    fin = open(input_filename, "r") 
+    fin = open(input_filename, "r")
     fout = open(output_filename, "w")
 
     w_matrix = read_w_matrix(w_matrix_filename)
@@ -77,11 +78,12 @@ def generate_model(input_filename, output_filename,
     if is_increment:
         # here, we will use increment mode to update globalH and globalD.
         (globalH, globalD) = update_increment_model(globalH, globalD, a_inc)
-    else:
-        global history_globalD
-        global history_globalH
-        history_globalH = globalH
-        history_globalD = globalD
+    
+    # update H and D
+    global history_globalD
+    global history_globalH
+    history_globalH = globalH
+    history_globalD = globalD
 
     eye_matrix = np.eye(int(num) + 1) / int(v)
 
@@ -115,10 +117,6 @@ def update_increment_model(local_globalH, local_globalD, a_inc):
 
     local_globalH = math.sqrt(a_inc) * history_globalH + local_globalH
     local_globalD = a_inc * history_globalD + local_globalD
-
-    #update H and D
-    history_globalH = local_globalH
-    history_globalD = local_globalD
 
     return (local_globalH, local_globalD)
 

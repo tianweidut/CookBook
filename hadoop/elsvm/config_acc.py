@@ -15,3 +15,5 @@ DATASETS = ("step1.csv",
             "step3.csv",
             "step4.csv",
             "step5.csv",)
+
+A_INC = 0.5
