@@ -14,7 +14,7 @@ __author__ = "tianwei"
 __date__ = "December 24 2012"
 __description__ = "el-svm for the whole splited block data"
 
-SEP = ','   # Parse from file
+SEP = ' '   # Parse from file
 SEP_local = ","
 
 

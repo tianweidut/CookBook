@@ -78,9 +78,8 @@ def generate_model(input_filename, output_filename,
     # decide how to generate model
     if is_increment:
         print "***use incremented model***"
-        print history_globalH, history_globalD
         # here, we will use increment mode to update globalH and globalD.
-        #(globalH, globalD) = update_increment_model(globalH, globalD, a_inc)
+        (globalH, globalD) = update_increment_model(globalH, globalD, a_inc)
 
     # update H and D
     global history_globalD
