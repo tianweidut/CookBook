@@ -117,7 +117,7 @@ def update_increment_model(local_globalH, local_globalD, a_inc):
     if history_globalD is None and history_globalH is None:
         return (local_globalH, local_globalD)
 
-    local_globalH = math.sqrt(a_inc) * history_globalH + local_globalH
+    local_globalH = (a_inc * a_inc) * history_globalH + local_globalH
     local_globalD = a_inc * history_globalD + local_globalD
 
     return (local_globalH, local_globalD)
