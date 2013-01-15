@@ -3,6 +3,10 @@
 *.swp
 *.csv
 
+# pydev
+.project
+.pydevproject
+
 # Packages
 *.egg
 *.egg-info
