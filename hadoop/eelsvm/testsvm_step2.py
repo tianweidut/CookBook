@@ -80,6 +80,14 @@ class Mapper():
 
         return label_d_value
 
+    def extend_point(self, point):
+        """
+        Extent a new value into point array
+        """
+        point = np.resize(point, len(point) + 1)
+        point[-1] = 1
+        return point
+
     def __call__(self, data):
         """
         Mapper Program
@@ -90,6 +98,7 @@ class Mapper():
         for docID, doc in data:
             for term in doc.split("\n"):
                 point = np.fromstring(term, dtype=np.float64, sep=SEP)
+                point = self.extend_point(point)
                 point[-1] = self.getDValue(point)
                 yield point.tolist()
 
