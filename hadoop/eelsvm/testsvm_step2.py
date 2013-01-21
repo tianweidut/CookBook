@@ -13,7 +13,7 @@ import dumbo
 __author__ = "tianwei"
 __date__ = "January 21 2012"
 __description__ = "mapreduce test for el-svm, \
-                   it will replace the last value in every line"
+                   it will add a new value into last column"
 
 SEP = ' '   # Parse from file
 SEP_local = ','   # Parse from file
