@@ -122,8 +122,7 @@ class ElsvmWrapper():
         output_name_final = sample_name + "_final_step"
         result_final = self.eelsvm_mapreduce(sample_name=output_testsvm_step2,
                                              output_name=output_name_final,
-                                             models_name=result_argument,
-                                             input_path=self.output_path)
+                                             models_name=result_argument)
 
         return result_final
         print "^" * 40
@@ -185,6 +184,8 @@ class ElsvmWrapper():
         """
         args = self.get_file_args(models_name)
 
+        args += " -outputformat text "
+
         self.mapreduce_core(sample_name=sample_name,
                             output_name=output_name,
                             exe_file=self.exe_testsvm2,
@@ -210,7 +211,8 @@ class ElsvmWrapper():
                                          output_name=output_name,
                                          exe_file=self.exe_eelsvm,
                                          is_cat=True,
-                                         args=args)
+                                         args=args,
+                                         input_path=self.output_path)
 
         return model_args
 

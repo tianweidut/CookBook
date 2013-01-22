@@ -16,7 +16,7 @@ __date__ = "January 21 2013"
 __description__ = "eel-svm for the whole splited block data, \
                    It will use the modified dataseti and the arguments"
 
-SEP = ' '   # Parse from file
+SEP = ','   # Parse from file
 SEP_local = ","
 
 
@@ -92,6 +92,7 @@ class Mapper():
         point.shape = (1, int(np.shape(point)[0]))
         # get the argument of pi
         argument_pi = self.get_predict_value(argument)
+        argument_pi = 1
 
         return (np.dot(point.T, point) * argument_pi,
                 y * point.T * argument_pi)

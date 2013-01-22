@@ -77,6 +77,10 @@ class Mapper():
 
         label = 1 if np.dot(tmp, self.w_matrix) - self.r > 0 else -1
 
+        if label == 1:
+            debug("1")
+        else:
+            debug("-1")
         return True if label == right_label else False
 
     def __call__(self, data):
@@ -117,8 +121,7 @@ class Reducer():
         if str(key) == "true_label":
             yield "true_label", sum(values)
         elif str(key) == "false_label":
-            yield "false_label", sum(values)
-        
+            yield "false_label", sum(values) 
 
 if __name__ == "__main__":
     dumbo.run(Mapper, Reducer)
