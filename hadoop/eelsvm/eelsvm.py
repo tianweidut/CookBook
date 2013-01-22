@@ -92,7 +92,6 @@ class Mapper():
         point.shape = (1, int(np.shape(point)[0]))
         # get the argument of pi
         argument_pi = self.get_predict_value(argument)
-        argument_pi = 1
 
         return (np.dot(point.T, point) * argument_pi,
                 y * point.T * argument_pi)

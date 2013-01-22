@@ -84,7 +84,7 @@ class ElsvmWrapper():
         output_name_step1 = sample_name + "_step1"
         result_name = self.elsvm_mapreduce(sample_name=sample_name,
                                            output_name=output_name_step1)
-
+        
         print "^" * 40
         # step2: generate model data file
         print "*" * 40
@@ -96,7 +96,7 @@ class ElsvmWrapper():
                                     v=self.v,
                                     is_increment=is_increment,
                                     a_inc=float(A_INC))
-
+         
         print "^" * 40
         # step3: testsvm_step1.py for cnt and means
         print "step3: testsvm_step1.py for cnt and means"
@@ -124,8 +124,8 @@ class ElsvmWrapper():
                                              output_name=output_name_final,
                                              models_name=result_argument)
 
-        return result_final
         print "^" * 40
+        return result_final
 
     def elsvm_mapreduce(self, sample_name, output_name):
         """
@@ -197,7 +197,8 @@ class ElsvmWrapper():
         use eelsvm.py to generate final globalH and globalD,
         for testsvm_step3.py
         """
-        args = self.get_w_matrix_args()
+        args = self.get_basic_args()
+        args += self.get_w_matrix_args()
 
         # get models args
         h_trans, means = testsvm_generator(self.h_argument,

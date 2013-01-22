@@ -98,9 +98,11 @@ class Mapper():
         for docID, doc in data:
             for term in doc.split("\n"):
                 point = np.fromstring(term, dtype=np.float64, sep=SEP)
+                label = int(point[-1])
                 last_value = self.getDValue(point)
                 point = self.extend_point(point)
                 point[-1] = last_value
+                point[-2] = float(label)
                 output = ",".join([str(i) for i in point])
                 yield output, "\t"
 
