@@ -98,8 +98,9 @@ class Mapper():
         for docID, doc in data:
             for term in doc.split("\n"):
                 point = np.fromstring(term, dtype=np.float64, sep=SEP)
+                last_value = self.getDValue(point)
                 point = self.extend_point(point)
-                point[-1] = self.getDValue(point)
+                point[-1] = last_value
                 yield point.tolist()
 
 
