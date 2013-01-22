@@ -122,7 +122,8 @@ class ElsvmWrapper():
         output_name_final = sample_name + "_final_step"
         result_final = self.eelsvm_mapreduce(sample_name=output_testsvm_step2,
                                              output_name=output_name_final,
-                                             models_name=result_argument)
+                                             models_name=result_argument,
+                                             input_path=)
 
         return result_final
         print "^" * 40
@@ -231,14 +232,18 @@ class ElsvmWrapper():
     def mapreduce_core(self, sample_name, output_name,
                        exe_file=None,
                        is_cat=True,
-                       args=None):
+                       args=None,
+                       input_path=None,
+                       output_path=None):
         """
         core mapreduce in hadoop
         """
         # STEP1: dumbo main start
+        input_path = self.data_path if input_path is None else input_path
+        output_path = self.output_path if output_path is None else output_path
         mapreduce_routine(is_hadoop=self.is_hadoop, exe_program=exe_file,
-                          input_file=os.path.join(self.data_path, sample_name),
-                          output_file=os.path.join(self.output_path, output_name),
+                          input_file=os.path.join(input_path, sample_name),
+                          output_file=os.path.join(output_path, output_name),
                           access_args=args,
                           content="EL-SVM MapReduce Process")
 
