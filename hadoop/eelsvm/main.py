@@ -123,7 +123,7 @@ class ElsvmWrapper():
         result_final = self.eelsvm_mapreduce(sample_name=output_testsvm_step2,
                                              output_name=output_name_final,
                                              models_name=result_argument,
-                                             input_path=)
+                                             input_path=self.output_path)
 
         return result_final
         print "^" * 40
