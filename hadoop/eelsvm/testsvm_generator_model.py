@@ -16,7 +16,7 @@ def parse_testsvm_result(file_name):
     parse the result of testsvm
     """
     f = open(file_name, "r")
-    content = f.readlines().split("\t")[1]
+    content = f.readlines()[0].split("\t")[1:]
     cnt = int(content[0])
     predict = float(content[1]) / float(cnt)
     f.close()
