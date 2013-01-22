@@ -101,7 +101,7 @@ class Mapper():
                 last_value = self.getDValue(point)
                 point = self.extend_point(point)
                 point[-1] = last_value
-                yield point.tolist()
+                yield point.tolist(), "\t"
 
 
 if __name__ == "__main__":
