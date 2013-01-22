@@ -63,7 +63,7 @@ class Parse():
         parse.add_option("-z", "--disableIncrement",
                          action="store_false", dest="is_increment",
                          help="disable increment mode")
-        parse.add_option("-h", "--hargument",
+        parse.add_option("-e", "--hargument",
                          action="store", dest="h_argument",
                          help="new argument for eelsvm")
 
