@@ -79,11 +79,16 @@ class ElsvmWrapper():
         the whole routine of training mapreduce
         """
         # step1: elsvm mapreduce
+        print "*" * 40
+        print "step1: elsvm mapreduce"
         output_name_step1 = sample_name + "_step1"
         result_name = self.elsvm_mapreduce(sample_name=sample_name,
                                            output_name=output_name_step1)
 
+        print "^" * 40
         # step2: generate model data file
+        print "*" * 40
+        print "step2: generate model data file"
         model_name = generate_model(input_filename=result_name,
                                     output_filename=result_name + "2",
                                     w_matrix_filename=self.w_matrix_filename,
@@ -92,25 +97,35 @@ class ElsvmWrapper():
                                     is_increment=is_increment,
                                     a_inc=float(A_INC))
 
+        print "^" * 40
         # step3: testsvm_step1.py for cnt and means
+        print "step3: testsvm_step1.py for cnt and means"
+        print "*" * 40
         output_testsvm_step1 = sample_name + "_testsvm_step1"
         result_argument = self.testsvm_step1(models_name=model_name,
                                              sample_name=sample_name,
                                              output_name=output_testsvm_step1)
 
+        print "^" * 40
         # step4: testsvm_step2.py for another dataset
+        print "step4: testsvm_step2.py for another dataset"
+        print "*" * 40
         output_testsvm_step2 = sample_name + "_testsvm_step2"
-        self.testsvm_step2(models_filename=model_name,
+        self.testsvm_step2(models_name=model_name,
                            sample_name=sample_name,
                            output_name=output_testsvm_step2)
 
+        print "^" * 40
         # step5: eelsvm mapreduce
+        print "step5: eelsvm mapreduce"
+        print "*" * 40
         output_name_final = sample_name + "_final_step"
         result_final = self.eelsvm_mapreduce(sample_name=output_testsvm_step2,
                                              output_name=output_name_final,
                                              models_name=result_argument)
 
         return result_final
+        print "^" * 40
 
     def elsvm_mapreduce(self, sample_name, output_name):
         """
