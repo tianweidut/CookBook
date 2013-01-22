@@ -91,7 +91,7 @@ class Mapper():
         for docID, doc in data:
             for term in doc.split("\n"):
                 point = np.fromstring(term, dtype=np.float64, sep=SEP)
-                means += self.varify(point)
+                means += self.getDValue(point)
                 cnt = cnt + 1
 
         yield "nonused", (cnt, means)
