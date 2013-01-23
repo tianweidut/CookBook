@@ -27,6 +27,8 @@ class ElsvmWrapper():
     exe_elsvm = os.path.join(exe_dir, "elsvm.py")
     exe_test = os.path.join(exe_dir, "testsvm.py")
 
+    exe_common = os.path.join(exe_dir, "common.py")
+
     output_test = "output_test.csv"
 
     def __init__(self, is_hadoop, data_path, output_path, local_path=None,
@@ -59,6 +61,16 @@ class ElsvmWrapper():
         self.final_result_filename_inc_f = open(self.final_result_filename_inc, "w")
         self.inc_model_str = ""
 
+    def get_commonlib(self):
+        """
+        import common lib file
+        """
+        access_args = " "
+        if self.is_hadoop:
+            access_args = " -file " + self.exe_common
+
+        return access_args
+
     def result_close(self):
         """
         output result incremented model
@@ -82,6 +94,8 @@ class ElsvmWrapper():
         else:
             access_args += " -param w_matrix_filename='%s' " % \
                 (self.w_matrix_filename)
+
+        access_args += self.get_commonlib()
 
         mapreduce_routine(is_hadoop=self.is_hadoop, exe_program=self.exe_elsvm,
                           input_file=os.path.join(self.data_path, sample_name),
@@ -109,6 +123,8 @@ class ElsvmWrapper():
 
         access_args += " -param models_filename='%s' " % \
                        os.path.basename(models_name)
+
+        access_args += self.get_commonlib()
 
         mapreduce_routine(is_hadoop=self.is_hadoop,
                           exe_program=self.exe_test,

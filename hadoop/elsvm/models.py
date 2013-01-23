@@ -6,10 +6,10 @@ Updated on 2013-01-13
 
 @author: tianwei
 '''
-import math
 import numpy as np
 
 from w_matrix import read_w_matrix
+from debug import generate_array
 
 __author__ = "tianwei"
 __date__ = "December 26 2012"
@@ -21,21 +21,6 @@ SEP_local = ","
 
 history_globalH = None
 history_globalD = None
-
-
-def generate_array(string_list, element_type):
-        """
-        generate narray from string list
-        """
-        matrix = None
-        whole_list = string_list.strip("[").strip("]").split("],")
-        for s in whole_list:
-            s = s.replace("[", " ").replace("]", " ").strip(" ")
-            s = np.array([np.fromstring(s, dtype=element_type, sep=SEP_local)])
-            matrix = np.concatenate((matrix, s)) \
-                     if matrix is not None else s
-
-        return matrix
 
 
 def read_matrix(f):

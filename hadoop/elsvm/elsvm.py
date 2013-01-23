@@ -4,45 +4,17 @@ Created on 2012-12-24
 
 @author: tianwei
 '''
-import sys
 from math import e
 
 import numpy as np
 import dumbo
 
+from common import debug, get_sep
+from common import load_w_matrix
+
 __author__ = "tianwei"
 __date__ = "December 24 2012"
 __description__ = "el-svm for the whole splited block data"
-
-SEP = ' '   # Parse from file
-SEP_local = ","
-
-
-def debug(content, pos=None):
-    print >> sys.stderr, "+" * 15
-    if pos is not None:
-        print >> sys.stderr, pos
-    print >> sys.stderr, content
-    print >> sys.stderr, "-" * 15
-
-
-def load_w_matrix(filename):
-    """
-    load means from the file
-    """
-    f = open(filename)
-    content = f.readlines()
-
-    matrix = None
-
-    for line in content:
-        point = np.fromstring(line, dtype=np.float64, sep=SEP_local)
-        point = np.array([point])
-        matrix = np.concatenate((matrix, point)) if matrix is not None else point
-
-    f.close()
-
-    return matrix
 
 
 class Mapper():
@@ -50,6 +22,7 @@ class Mapper():
         """
         """
         self.w_matrix = load_w_matrix(self.params["w_matrix_filename"])
+        self.SEP = None
 
     def calculate(self, point):
         """
@@ -89,7 +62,8 @@ class Mapper():
 
         for docID, doc in data:
             for term in doc.split("\n"):
-                point = np.fromstring(term, dtype=np.float64, sep=SEP)
+                self.SEP = self.SEP if self.SEP is not None else get_sep(term)
+                point = np.fromstring(term, dtype=np.float64, sep=self.SEP)
                 (localH, localD) = self.calculate(point)
 
                 if resultH is not None:
