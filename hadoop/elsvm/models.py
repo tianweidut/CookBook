@@ -9,7 +9,7 @@ Updated on 2013-01-13
 import numpy as np
 
 from w_matrix import read_w_matrix
-from debug import generate_array
+from common import generate_array
 
 __author__ = "tianwei"
 __date__ = "December 26 2012"
