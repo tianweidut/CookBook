@@ -5,7 +5,6 @@ Created on 2013-01-23
 @author: tianwei
 '''
 import sys
-from math import e
 
 import numpy as np
 
@@ -50,3 +49,18 @@ def get_sep(term):
             return ","
         else:
             return " "
+
+
+def generate_array(string_list, element_type):
+        """
+        generate narray from string list
+        """
+        matrix = None
+        whole_list = string_list.strip("[").strip("]").split("],")
+        for s in whole_list:
+            s = s.replace("[", " ").replace("]", " ").strip(" ")
+            s = np.array([np.fromstring(s, dtype=element_type, sep=SEP_local)])
+            matrix = np.concatenate((matrix, s)) \
+                     if matrix is not None else s
+
+        return matrix

@@ -4,25 +4,16 @@ Created on 2013-01-24
 
 @author: tianwei
 '''
-import sys
 from math import e
 
 import numpy as np
 import dumbo
 
+from common import get_sep, debug, generate_array
+
 __author__ = "tianwei"
 __date__ = "December 24  2012"
 __description__ = "varify the final result of MapReduce"
-
-SEP_local = ','   # Parse from file
-
-
-def debug(content, pos=None):
-    print >> sys.stderr, "+" * 15
-    if pos is not None:
-        print >> sys.stderr, pos
-    print >> sys.stderr, content
-    print >> sys.stderr, "-" * 15
 
 
 class Mapper():
@@ -32,28 +23,6 @@ class Mapper():
         self.load_models()
         self.SEP = None
 
-    def get_sep(self, term):
-        """
-        """
-        if "," in term:
-            return ","
-        else:
-            return " "
-
-    def generate_array(self, string_list, element_type):
-        """
-        generate narray from string list
-        """
-        matrix = None
-        whole_list = string_list.strip("[").strip("]").split("],")
-        for s in whole_list:
-            s = s.replace("[", " ").replace("]", " ").strip(" ")
-            s = np.array([np.fromstring(s, dtype=element_type, sep=SEP_local)])
-            matrix = np.concatenate((matrix, s)) \
-                     if matrix is not None else s
-
-        return matrix
-
     def load_models(self):
         """
         load models from the file
@@ -62,12 +31,12 @@ class Mapper():
         content = f.readlines()
         content = content[0].strip('\n').split('\t')
 
-        self.w_suffix_matrix = self.generate_array(content[2],
-                                                   element_type=np.float64)
+        self.w_suffix_matrix = generate_array(content[2],
+                                              element_type=np.float64)
         self.r = float(content[3])
 
-        self.w_matrix = self.generate_array(content[5],
-                                            element_type=np.float64)
+        self.w_matrix = generate_array(content[5],
+                                       element_type=np.float64)
         self.w_matrix = np.transpose(self.w_matrix)
 
         f.close()
@@ -93,7 +62,7 @@ class Mapper():
 
     def __call__(self, data):
         """
-        Mapper Program 
+        Mapper Program
         """
 
         true_cnt = 0
@@ -101,7 +70,7 @@ class Mapper():
 
         for docID, doc in data:
             for term in doc.split("\n"):
-                self.SEP = self.SEP if self.SEP is not None else self.get_sep(term)
+                self.SEP = self.SEP if self.SEP is not None else get_sep(term)
                 point = np.fromstring(term, dtype=np.float64, sep=self.SEP)
                 if self.varify(point):
                     true_cnt = true_cnt + 1
@@ -121,10 +90,10 @@ class Reducer():
 
         Inputs:
             key: true_label or false_label
-            values: cnt for label 
+            values: cnt for label
 
         Outputs:
-            the statistical result 
+            the statistical result
         """
 
         if str(key) == "true_label":

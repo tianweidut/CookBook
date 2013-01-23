@@ -2,7 +2,7 @@
 '''
 Created on 2012-12-24
 
-Updated on 2013-01-21
+Updated on 2013-01-22
 
 @author: tianwei
 '''
@@ -27,6 +27,8 @@ class ElsvmWrapper():
     exe_dir = os.path.abspath(os.path.dirname(__file__))
     exe_elsvm = os.path.join(exe_dir, "elsvm.py")
     exe_test = os.path.join(exe_dir, "testsvm_step3.py")
+
+    exe_common = os.path.join(exe_dir, "common.py")
 
     exe_eelsvm = os.path.join(exe_dir, "eelsvm.py")
     exe_testsvm1 = os.path.join(exe_dir, "testsvm_step1.py")
@@ -84,7 +86,7 @@ class ElsvmWrapper():
         output_name_step1 = sample_name + "_step1"
         result_name = self.elsvm_mapreduce(sample_name=sample_name,
                                            output_name=output_name_step1)
-        
+
         print "^" * 40
         # step2: generate model data file
         print "*" * 40
@@ -96,7 +98,7 @@ class ElsvmWrapper():
                                     v=self.v,
                                     is_increment=is_increment,
                                     a_inc=float(A_INC))
-         
+
         print "^" * 40
         # step3: testsvm_step1.py for cnt and means
         print "step3: testsvm_step1.py for cnt and means"
@@ -127,6 +129,16 @@ class ElsvmWrapper():
         print "^" * 40
         return result_final
 
+    def get_commonlib(self):
+        """
+        import common lib file
+        """
+        access_args = " "
+        if self.is_hadoop:
+            access_args = " -file " + self.exe_common
+
+        return access_args
+
     def elsvm_mapreduce(self, sample_name, output_name):
         """
         use elsvm.py to generate the basic globalH and globalD,
@@ -135,6 +147,7 @@ class ElsvmWrapper():
         # add args for elsvm mapreduce
         args = self.get_basic_args()
         args += self.get_w_matrix_args()
+        args += self.get_commonlib()
 
         model_args = self.mapreduce_core(sample_name=sample_name,
                                          output_name=output_name,
@@ -150,6 +163,7 @@ class ElsvmWrapper():
         for eelsvm, need to cat to local file
         """
         args = self.get_file_args(models_name)
+        args += self.get_commonlib()
 
         h_args = self.mapreduce_core(sample_name=sample_name,
                                      output_name=output_name,
@@ -183,6 +197,7 @@ class ElsvmWrapper():
         for eelsvm, only in hadoop clusters
         """
         args = self.get_file_args(models_name)
+        args += self.get_commonlib()
 
         args += " -outputformat text "
 
@@ -199,6 +214,7 @@ class ElsvmWrapper():
         """
         args = self.get_basic_args()
         args += self.get_w_matrix_args()
+        args += self.get_commonlib()
 
         # get models args
         h_trans, means = testsvm_generator(self.h_argument,
@@ -267,6 +283,7 @@ class ElsvmWrapper():
         """
         # STEP1: dumbo main start
         access_args = self.get_file_args(models_name)
+        access_args += self.get_commonlib()
 
         mapreduce_routine(is_hadoop=self.is_hadoop,
                           exe_program=self.exe_test,
