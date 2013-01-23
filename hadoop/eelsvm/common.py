@@ -14,6 +14,17 @@ __description__ = "common lib for mapreduce"
 
 SEP_local = ","
 
+# Constant for varify label
+TRUE_T = 0
+TRUE_F = 1
+FALSE_T = 2
+FALSE_F = 3
+
+TRUE_T_STR = "true_cnt_t"
+TRUE_F_STR = "true_cnt_f"
+FALSE_T_STR = "false_cnt_t"
+FALSE_F_STR = "false_cnt_f"
+
 
 def debug(content, pos=None):
     print >> sys.stderr, "+" * 15

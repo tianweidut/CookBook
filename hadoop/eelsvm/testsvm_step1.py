@@ -9,15 +9,13 @@ from math import e
 import numpy as np
 import dumbo
 
-from common import debug, load_w_matrix, get_sep
+from common import debug, get_sep
 from common import generate_array
 
 __author__ = "tianwei"
 __date__ = "January 21 2013"
 __description__ = "mapreduce test for el-svm, non 1 or -1, \
                    get count and means from the origianl data"
-
-SEP_local = ','   # Parse from file
 
 
 class Mapper():
