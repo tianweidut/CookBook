@@ -14,6 +14,8 @@ from w_matrix import generate_w_matrix
 from models import generate_model
 
 from config_acc import DATASETS, A_INC
+from common import TRUE_T_STR, TRUE_F_STR
+from common import FALSE_T_STR, FALSE_F_STR
 
 __author__ = "tianwei"
 __date__ = "December 24 2012"
@@ -150,11 +152,19 @@ class ElsvmWrapper():
         tmp = "\n" + "*" * 20 + "\n"
 
         # Parse multi-lines
-        true_cnt = int(contents[0].split("\t")[1])
-        false_cnt = int(contents[1].split("\t")[1])
+        for content in contents:
+            if str(content.split("\t")[0]) == TRUE_F_STR:
+                true_cnt_f = int(content.split("\t")[1])
+            elif str(content.split("\t")[0]) == TRUE_T_STR:
+                true_cnt_t = int(content.split("\t")[1])
+            elif str(content.split("\t")[0]) == FALSE_F_STR:
+                false_cnt_f = int(content.split("\t")[1])
+            elif str(content.split("\t")[0]) == FALSE_T_STR:
+                false_cnt_t = int(content.split("\t")[1])
 
-        tmp += "true:%d, false:%d \n" % (true_cnt, false_cnt)
-        total_num = true_cnt + false_cnt
+        tmp += "true_t:%d, false_t:%d \n" % (true_cnt_t, false_cnt_t)
+        tmp += "true_f:%d, false_f:%d \n" % (true_cnt_f, false_cnt_f)
+        total_num = true_cnt_t + true_cnt_f + false_cnt_f + false_cnt_t
         if total_num > 10000:
             tmp += "total nums:%d w \n" % (total_num / 10000)
         elif total_num > 1000:
@@ -162,7 +172,14 @@ class ElsvmWrapper():
         else:
             tmp += "total nums:%d \n" % (total_num)
 
-        tmp += "accuracy rate: %f%% \n" % (true_cnt / float(total_num) * 100.0)
+        tmp += "accuracy rate: %f%% \n" % \
+               ((true_cnt_t + true_cnt_f) / float(total_num) * 100.0)
+
+        tmp += "T accuracy rate: %f%% \n" % \
+               (true_cnt_t / float(true_cnt_t + false_cnt_t) * 100.0)
+
+        tmp += "F accuracy rate: %f%% \n" % \
+               (true_cnt_f / float(true_cnt_f + false_cnt_f) * 100.0)
 
         tmp += "\n" + "*" * 20 + "\n"
 

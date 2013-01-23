@@ -11,6 +11,10 @@ import dumbo
 
 from common import debug, get_sep
 from common import generate_array
+from common import TRUE_T, TRUE_F
+from common import FALSE_T, FALSE_F
+from common import TRUE_T_STR, TRUE_F_STR
+from common import FALSE_T_STR, FALSE_F_STR
 
 __author__ = "tianwei"
 __date__ = "December 24  2012"
@@ -54,29 +58,39 @@ class Mapper():
 
         label = 1 if np.dot(tmp, self.w_matrix) > 0 else -1
 
-        return True if label == right_label else False
+        if right_label == 1:
+            return TRUE_T if label == right_label else FALSE_T
+        elif right_label == -1:
+            return TRUE_F if label == right_label else FALSE_F
 
     def __call__(self, data):
         """
         Mapper Program
         """
 
-        true_cnt = 0
-        false_cnt = 0
+        true_cnt_t = 0
+        true_cnt_f = 0
+        false_cnt_t = 0
+        false_cnt_f = 0
 
         for docID, doc in data:
             for term in doc.split("\n"):
                 self.SEP = self.SEP if self.SEP is not None else get_sep(term)
                 point = np.fromstring(term, dtype=np.float64, sep=self.SEP)
-                if self.varify(point):
-                    true_cnt = true_cnt + 1
-                else:
-                    false_cnt = false_cnt + 1
+                result = self.varify(point)
+                if result == TRUE_F:
+                    true_cnt_f = true_cnt_f + 1
+                elif result == TRUE_T:
+                    true_cnt_t = true_cnt_t + 1
+                elif result == FALSE_F:
+                    false_cnt_f = false_cnt_f + 1
+                elif result == FALSE_T:
+                    false_cnt_t = false_cnt_t + 1
 
-        debug(true_cnt)
-        debug(false_cnt)
-        yield "true_label", true_cnt
-        yield "false_label", false_cnt
+        yield TRUE_T_STR, true_cnt_t
+        yield TRUE_F_STR, true_cnt_f
+        yield FALSE_T_STR, false_cnt_t
+        yield FALSE_F_STR, false_cnt_f
 
 
 class Reducer():
@@ -92,10 +106,14 @@ class Reducer():
             the statistical result
         """
 
-        if str(key) == "true_label":
-            yield "true_label", sum(values)
-        elif str(key) == "false_label":
-            yield "false_label", sum(values)
+        if str(key) == TRUE_T_STR:
+            yield TRUE_T_STR, sum(values)
+        elif str(key) == TRUE_F_STR:
+            yield TRUE_F_STR, sum(values)
+        elif str(key) == FALSE_T_STR:
+            yield FALSE_T_STR, sum(values)
+        elif str(key) == FALSE_F_STR:
+            yield FALSE_F_STR, sum(values)
 
 if __name__ == "__main__":
     dumbo.run(Mapper, Reducer)
