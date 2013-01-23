@@ -15,7 +15,6 @@ __date__ = "January 21 2012"
 __description__ = "mapreduce test for el-svm, \
                    it will add a new value into last column"
 
-SEP = ' '   # Parse from file
 SEP_local = ','   # Parse from file
 
 
@@ -32,6 +31,7 @@ class Mapper():
         """
         """
         self.load_models()
+        self.SEP = None
 
     def generate_array(self, string_list, element_type):
         """
@@ -46,6 +46,14 @@ class Mapper():
                      if matrix is not None else s
 
         return matrix
+
+    def get_sep(self, term):
+        """
+        """
+        if "," in term:
+            return ","
+        else:
+            return " "
 
     def load_models(self):
         """
@@ -97,7 +105,8 @@ class Mapper():
 
         for docID, doc in data:
             for term in doc.split("\n"):
-                point = np.fromstring(term, dtype=np.float64, sep=SEP)
+                self.SEP = self.SEP if self.SEP is not None else self.get_sep(term)
+                point = np.fromstring(term, dtype=np.float64, sep=self.SEP)
                 label = int(point[-1])
                 last_value = self.getDValue(point)
                 point = self.extend_point(point)

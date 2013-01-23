@@ -6,7 +6,6 @@ Updated on 2013-01-13
 
 @author: tianwei
 '''
-import math
 import numpy as np
 
 from w_matrix import read_w_matrix
@@ -16,7 +15,6 @@ __date__ = "December 26 2012"
 __description__ = "generate model args from map-reduce dump file, \
                     the new version support increment model"
 
-SEP = " "
 SEP_local = ","
 
 history_globalH = None

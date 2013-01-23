@@ -14,7 +14,6 @@ __author__ = "tianwei"
 __date__ = "December 24  2012"
 __description__ = "varify the final result of MapReduce"
 
-SEP = ' '   # Parse from file
 SEP_local = ','   # Parse from file
 
 
@@ -31,6 +30,15 @@ class Mapper():
         """
         """
         self.load_models()
+        self.SEP = None
+
+    def get_sep(self, term):
+        """
+        """
+        if "," in term:
+            return ","
+        else:
+            return " "
 
     def generate_array(self, string_list, element_type):
         """
@@ -93,7 +101,8 @@ class Mapper():
 
         for docID, doc in data:
             for term in doc.split("\n"):
-                point = np.fromstring(term, dtype=np.float64, sep=SEP)
+                self.SEP = self.SEP if self.SEP is not None else self.get_sep(term)
+                point = np.fromstring(term, dtype=np.float64, sep=self.SEP)
                 if self.varify(point):
                     true_cnt = true_cnt + 1
                 else:
@@ -105,11 +114,11 @@ class Mapper():
         yield "false_label", false_cnt
 
 
-class Reducer(): 
+class Reducer():
     def __call__(self, key, values):
         """
         Reducer Program: statistical for elsvm
-        
+
         Inputs:
             key: true_label or false_label
             values: cnt for label 
@@ -121,7 +130,7 @@ class Reducer():
         if str(key) == "true_label":
             yield "true_label", sum(values)
         elif str(key) == "false_label":
-            yield "false_label", sum(values) 
+            yield "false_label", sum(values)
 
 if __name__ == "__main__":
     dumbo.run(Mapper, Reducer)

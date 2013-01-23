@@ -50,6 +50,15 @@ class Mapper():
         """
         """
         self.w_matrix = load_w_matrix(self.params["w_matrix_filename"])
+        self.SEP = None
+
+    def get_sep(self, term):
+        """
+        """
+        if "," in term:
+            return ","
+        else:
+            return " "
 
     def calculate(self, point):
         """
@@ -89,9 +98,9 @@ class Mapper():
 
         for docID, doc in data:
             for term in doc.split("\n"):
-                point = np.fromstring(term, dtype=np.float64, sep=SEP)
+                self.SEP = self.SEP if self.SEP is not None else self.get_sep(term)
+                point = np.fromstring(term, dtype=np.float64, sep=self.SEP)
                 (localH, localD) = self.calculate(point)
-
                 if resultH is not None:
                     resultH = resultH + localH
                     resultD = resultD + localD

@@ -15,7 +15,6 @@ __date__ = "January 21 2013"
 __description__ = "mapreduce test for el-svm, non 1 or -1, \
                    get count and means from the origianl data"
 
-SEP = ' '   # Parse from file
 SEP_local = ','   # Parse from file
 
 
@@ -32,6 +31,15 @@ class Mapper():
         """
         """
         self.load_models()
+        self.SEP = None
+
+    def get_sep(self, term):
+        """
+        """
+        if "," in term:
+            return ","
+        else:
+            return " "
 
     def generate_array(self, string_list, element_type):
         """
@@ -90,7 +98,8 @@ class Mapper():
 
         for docID, doc in data:
             for term in doc.split("\n"):
-                point = np.fromstring(term, dtype=np.float64, sep=SEP)
+                self.SEP = self.SEP if self.SEP is not None else self.get_sep(term)
+                point = np.fromstring(term, dtype=np.float64, sep=self.SEP)
                 means += self.getDValue(point)
                 cnt = cnt + 1
 

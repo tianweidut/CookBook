@@ -16,7 +16,6 @@ __date__ = "January 21 2013"
 __description__ = "eel-svm for the whole splited block data, \
                    It will use the modified dataseti and the arguments"
 
-SEP = ','   # Parse from file
 SEP_local = ","
 
 
@@ -55,6 +54,15 @@ class Mapper():
         self.means = float(self.params["means"])
         self.a = 1.0 / float(np.sqrt(2 * pi))
         self.w_matrix = load_w_matrix(self.params["w_matrix_filename"])
+        self.SEP = None
+
+    def get_sep(self, term):
+        """
+        """
+        if "," in term:
+            return ","
+        else:
+            return " "
 
     def get_predict_value(self, v):
         """
@@ -114,7 +122,8 @@ class Mapper():
 
         for docID, doc in data:
             for term in doc.split("\n"):
-                point = np.fromstring(term, dtype=np.float64, sep=SEP)
+                self.SEP = self.SEP if self.SEP is not None else self.get_sep(term)
+                point = np.fromstring(term, dtype=np.float64, sep=self.SEP)
                 (localH, localD) = self.calculate(point)
 
                 if resultH is not None:
