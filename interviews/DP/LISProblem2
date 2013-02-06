@@ -1,0 +1,44 @@
+//LIS another problem: 最长递增子序列的变种，不是以序列长度为状态变化，而是以状态长度和为变化，代码可以处理负数情况！ 
+// FROM: http://acm.hdu.edu.cn/showproblem.php?pid=1160
+#include <iostream>
+
+using namespace std;
+
+int main()
+{
+    int A[1000];
+    int B[1000];
+    int i,j,k,max = 0;
+    int cnt = 0;
+
+    while(cin>>cnt && cnt)
+    {
+        //input
+        for(i=0;i<cnt;i++)
+        {
+            cin>>A[i];
+            B[i] = 0;
+        }
+
+        //init
+        max = A[0];
+        for(i=0;i<cnt;i++)
+        {
+            B[i] = A[i];
+            for(j=i-1;j>=0;j--)
+            {
+                if(A[i]>A[j])
+                {
+                    if(B[j]+A[i]>B[i])
+                    {
+                        B[i] = B[j] + A[i];
+                    }
+                }
+            }
+            max = max>B[i]?max:B[i];
+        }
+        cout << max<<endl;
+    }
+
+    return 0;
+}

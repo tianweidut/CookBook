@@ -23,6 +23,13 @@
 
 ## shell
  * shell scripts
+
+## Interviews
+ * Trie tree
+ * Strcpy functions
+ * string permutation 
+ * string combination
+ * DP
  
 
 **to be contined...**
