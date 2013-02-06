@@ -2,6 +2,7 @@
 
 ## Algorithm
  * first element which is larger than k
+ * DP for Sky 
 
 ## Hadoop
  * top 10 problem
@@ -16,6 +17,12 @@
  * Decorator: python decorator tricks
  * JSON: a simple parse, translate json string to python object
  * closuree: it is python closuree feature
+
+## C
+ * Linux C thread, pipes, tcpip
+
+## shell
+ * shell scripts
  
 
 **to be contined...**
