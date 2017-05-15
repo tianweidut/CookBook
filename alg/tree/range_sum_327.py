@@ -97,7 +97,7 @@ class Solution(object):
 
         return cnt
 
-    def countRangeSum(self, nums, lower, upper):
+    def countRangeSum1(self, nums, lower, upper):
         if not nums:
             return 0
 
@@ -120,6 +120,34 @@ class Solution(object):
             ans += tree.sum(index[upper + total]) - tree.sum(index[lower - 1 + total])
 
         return ans
+
+    def countRangeSum(self, nums, lower, upper):
+        if not nums:
+            return 0
+
+        total = 0
+        sum_array = [lower, upper]
+
+        for n in nums:
+            total += n
+            sum_array += [total, lower + total, upper + total]
+
+        index = {}
+        for i, v in enumerate(sorted(set(sum_array))):
+            index[v] = i + 1
+
+        ans = 0
+        tree = FenwickTree(len(index))
+        for num in reversed(nums):
+            tree.add(index[total], 1)
+            total -= num
+            ans += tree.sum(index[upper + total]) - tree.sum(index[lower + total])
+
+            if lower <= num <= upper:
+                ans += 1
+
+        return ans
+
 
 
 if __name__ == "__main__":
