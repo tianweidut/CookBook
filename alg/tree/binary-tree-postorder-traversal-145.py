@@ -38,9 +38,9 @@ class Solution(object):
                     root = p
             else:
                 root = stack[-1]
-                p = root.right
-                root.right = None
-                if p:
+                if root.right:
+                    p = root.right
+                    root.right = None
                     root = p
                 else:
                     stack.pop()
