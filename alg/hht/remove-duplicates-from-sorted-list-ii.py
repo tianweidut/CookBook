@@ -5,32 +5,16 @@ class Solution:
     @return: A ListNode
     """
     def deleteDuplicates(self, head):
-        if not head:
-            return None
-            
-        phead = head
-        next = head.next
-        dup = False
-        
+        fake_head = ListNode(None, next=head)
+        prev = fake_head
+
         while head:
-            if next:
-                if head.val == next.val:
-                    next = next.next
-                    dup = True
-                else:
-                    if dup:
-                        head.val = next.val
-                        head.next = next.next
-                        next = next.next
-                        dup = False
-                    else:
-                        head = head.next
-                        next = next.next
+            while head.next and head.val == head.next.val:
+                head = head.next
+
+            if prev.next == head:
+                prev = head
             else:
-                if dup:
-                    head = None
-                else:
-                    head.next = next
-                    head = next
-                        
-        return phead
+                prev.next = head.next
+            head = head.next
+        return fake_head.next
