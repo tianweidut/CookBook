@@ -9,7 +9,7 @@ class Solution:
 
     def isMatch(self, s, p):
         self.record = {}
-        return self.do_match(list(s), 0, list(p), 0)
+        return self.do_match_simple(list(s), 0, list(p), 0)
 
     def do_match(self, s, s_start, p, p_start):
         key = (s_start, p_start)
@@ -44,3 +44,30 @@ class Solution:
 
         self.record[key] = flag
         return flag
+
+    def do_match_simple(self, s, s_start, p, p_start):
+        key = (s_start, p_start)
+        if key in self.record:
+            return self.record[key]
+
+        len_s = len(s)
+        len_p = len(p)
+
+        if p_start >= len_p:
+            flag = s_start >= len_s
+        elif p_start < len_p and s_start >= len_s:
+            flag = all([pp == '*' for pp in p[p_start:]])
+        elif p[p_start] == '*':
+            flag = (self.do_match_simple(s, s_start + 1, p, p_start) or
+                    self.do_match_simple(s, s_start + 1, p, p_start + 1) or
+                    self.do_match_simple(s, s_start, p, p_start + 1))
+        else:
+            flag = s_start < len_s and (s[s_start] == p[p_start] or p[p_start] == '?') and \
+                    self.do_match_simple(s, s_start + 1, p, p_start + 1)
+
+        self.record[key] = flag
+        return flag
+
+
+if __name__ == "__main__":
+    print Solution().isMatch("aa", "a*")
