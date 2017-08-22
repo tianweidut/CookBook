@@ -1,4 +1,4 @@
-
+# http://www.cnblogs.com/lichen782/p/leetcode_Largest_Rectangle_in_Histogram.htm
 class Solution(object):
     def largestRectangleArea(self, heights):
         """
