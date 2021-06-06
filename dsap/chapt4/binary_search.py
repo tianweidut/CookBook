@@ -1,5 +1,21 @@
 #conding: utf-8
 
+def _bs_iter(data, target):
+    low = 0
+    high = len(data) - 1
+
+    while low <= high:
+        mid = (low + high) // 2
+        if data[mid] == target:
+            return True, mid
+        elif target > data[mid]:
+            low = mid + 1
+        else:
+            high = mid - 1
+
+    return False, -1
+
+
 def _bs(data, target, start, end):
     if start > end:
         return False, -1
@@ -17,7 +33,8 @@ def bs(data, target):
     if not data:
         return False, -1
 
-    return _bs(data, target, 0, len(data)-1)
+    return _bs_iter(data, target)
+    #return _bs(data, target, 0, len(data)-1)
 
 if __name__ == "__main__":
     input = [1,2,3,4,5,6,7,8]
