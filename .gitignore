@@ -2,6 +2,7 @@
 *~
 *.swp
 *.csv
+.history
 
 # pydev
 .project
